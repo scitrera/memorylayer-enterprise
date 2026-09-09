@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Unit tests for the OCR model contracts.
 
 Unlimited-OCR returns **empty output** if any part of its prompt/decode recipe

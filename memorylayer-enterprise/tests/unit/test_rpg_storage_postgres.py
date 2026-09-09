@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Contract tests for Enterprise PostgreSQL/AGE RPG storage support."""
 
 from contextlib import asynccontextmanager

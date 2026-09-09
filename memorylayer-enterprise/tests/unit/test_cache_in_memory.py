@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Unit tests for the in-memory enterprise cache service.
 
 Covers the full CacheService surface (get/set/TTL/delete/exists/clear_prefix)

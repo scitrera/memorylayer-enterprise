@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Plan PostgreSQL rebuilds from source hashes and upstream OCI index digests.
 
 An inputs-<hash> registry tag records a successfully tested, two-platform build.

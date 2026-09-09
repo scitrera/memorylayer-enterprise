@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Enterprise Phase 1c: LLM update-vs-add consolidation on the write path.
 
 These tests cover the ENTERPRISE override of ``_merge_memories``:

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Unit tests for the shared post-store enqueue path in document ingestion.
 
 Phase 1 of the memory-lifecycle work routes document-ingested memories through

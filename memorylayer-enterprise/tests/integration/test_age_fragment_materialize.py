@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Graph-moat P4.5 integration tests: Fragment materialization + fragments_for_memory.
 
 P4.5 (Fragment materialization into AGE):

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Integration test for tag-based workspace lookup on the PostgreSQL backend.
 
 The tag filter uses PostgreSQL array operators (``@>`` containment for match='all',

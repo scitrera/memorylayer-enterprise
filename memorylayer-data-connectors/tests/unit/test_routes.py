@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Unit tests for FastAPI routes.
 
 Tests each route for happy-path behavior using FastAPI's TestClient.

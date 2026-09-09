@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Unit tests for the per-page image-embed precompute/persist + injection helpers."""
 
 import base64

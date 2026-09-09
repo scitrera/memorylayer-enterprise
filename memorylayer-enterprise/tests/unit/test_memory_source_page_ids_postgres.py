@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Unit tests for the store-phase gap primitives on PostgreSQLBackend.
 
 Covers ``get_memory_source_page_ids`` (the set of page ids already represented

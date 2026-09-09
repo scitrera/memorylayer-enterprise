@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Unit tests for the doc_verify reconcile task handler (Phase 3).
 
 Tests ``DocVerifyTaskHandler`` in isolation with lightweight fakes. The handler

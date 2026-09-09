@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Add composite UNIQUE(workspace_id, id) constraint to chat_threads.
 
 Revision ID: 018

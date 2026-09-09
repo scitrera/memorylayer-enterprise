@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Fail-closed authorization for VFS operations delivered through Aether.
 
 The gateway evaluates a caller-supplied logical resource tuple and attaches a

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Integration tests for Aether-backed enterprise services.
 
 All Aether SDK interactions are mocked — no live gateway is required.

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Process-local, byte-bounded, TTL'd LRU cache for blob reads.
 
 The chat read path (``build_image_embeds_content_blocks``) re-reads each page's

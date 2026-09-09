@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Rollup of uvicorn access-log lines for k8s probe endpoints.
 
 WHY. Probes crowd out everything else. A 20-line tail of this service's log

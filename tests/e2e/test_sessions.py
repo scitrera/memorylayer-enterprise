@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """E2E: Session lifecycle — create, list, touch, delete."""
 
 from memorylayer import SyncMemoryLayerClient

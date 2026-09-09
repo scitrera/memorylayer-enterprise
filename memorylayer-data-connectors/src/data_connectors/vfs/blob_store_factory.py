@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Blob-store backend selection.
 
 Chooses the VFS blob backend from ``DC_BLOB_TYPE`` and constructs it from the

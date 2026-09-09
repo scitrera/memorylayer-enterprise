@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Unit tests for the sync engine — create_task payload shape assertions.
 
 Mirrors the pattern from memorylayer-enterprise's test_aether_task_service.py.

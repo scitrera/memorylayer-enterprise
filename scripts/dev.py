@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Install extensions alongside one Git revision or an editable OSS checkout.
 
 Requires Python 3.12+, Git, and pip. The admin target also requires Node/npm.

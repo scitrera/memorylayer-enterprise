@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Google Drive connector — syncs files from Google Drive.
 
 Discovers documents via the Drive v3 API, computes content hashes from

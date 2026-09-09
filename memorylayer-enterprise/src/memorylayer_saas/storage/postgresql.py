@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """PostgreSQL storage backend with pgvector support and LEANN cold tier."""
 import asyncio
 import hashlib

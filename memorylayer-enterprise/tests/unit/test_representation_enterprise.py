@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Unit tests for the EnterpriseRepresentationService (P3 derived-beliefs layer).
 
 The enterprise service subclasses the OSS ``DefaultRepresentationService`` and

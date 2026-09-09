@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Add name_embedding to entities for enterprise embedding-fuzzy resolution.
 
 Revision ID: 023

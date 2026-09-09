@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """SQLite-backed contract tests for PostgreSQL semantic-memory versioning."""
 
 import hashlib

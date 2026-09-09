@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Garbage collection for uploads that were started but never completed.
 
 An upload mints a VFS entry first and finalizes it once the bytes land. When

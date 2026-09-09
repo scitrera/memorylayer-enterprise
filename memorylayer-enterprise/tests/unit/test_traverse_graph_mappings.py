@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Unit test for PostgreSQLBackend.traverse_graph row mapping.
 
 Regression for the bug where traverse_graph indexed a SQLAlchemy 2.0 Core

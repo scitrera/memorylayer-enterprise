@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Collection item model for MemoryLayer Enterprise vector collections."""
 from datetime import datetime, timezone
 from typing import Any, Optional

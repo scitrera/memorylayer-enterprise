@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Central configuration for MemoryLayer Enterprise.
 
 NOTE: Most configurations should live closest to where it's used (in service base.py files).

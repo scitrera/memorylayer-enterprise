@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Structured layout parsing of grounded OCR output.
 
 Unlimited-OCR does not return prose — it returns a **layout segmentation**. Each

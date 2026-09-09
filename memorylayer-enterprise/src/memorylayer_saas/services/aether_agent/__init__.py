@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Backward-compatibility re-export — implementation moved to memorylayer_server.
 
 Phase 1 (Aether convergence): the OSS module was renamed from

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Unit tests for the direct (no embed-server) transcription path.
 
 Covers the provider's request shape, cascade fallthrough across N rungs, the

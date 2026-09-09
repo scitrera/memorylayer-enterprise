@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Database connection and session management for PostgreSQL."""
 import os
 from collections.abc import AsyncGenerator

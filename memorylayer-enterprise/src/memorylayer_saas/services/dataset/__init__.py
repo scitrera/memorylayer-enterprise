@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Dataset service package.
 
 Provides extension points and plugin base classes for the dataset ingestion

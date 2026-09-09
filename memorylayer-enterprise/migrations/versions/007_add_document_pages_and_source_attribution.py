@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Add document_pages table and source attribution columns to memories.
 
 Introduces per-page document storage with transcription and visual token support,

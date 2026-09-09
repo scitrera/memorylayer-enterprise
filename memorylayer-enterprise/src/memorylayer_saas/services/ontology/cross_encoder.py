@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Cross-encoder (NLI) relationship classifier for MemoryLayer enterprise.
 
 Replaces the per-pair / batched **LLM** relationship classification

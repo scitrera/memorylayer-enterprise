@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Enterprise entity linker providers (Wikidata).
 
 Auto-discovered by the enterprise ``register_package_plugins(services.__package__,

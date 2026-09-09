@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Aether KV-backed rate limit service for MemoryLayer Enterprise.
 
 Uses the shared ``AsyncServiceClient`` from :class:`AetherServiceConnection`

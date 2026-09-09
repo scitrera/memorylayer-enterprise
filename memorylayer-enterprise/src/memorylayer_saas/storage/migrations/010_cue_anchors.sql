@@ -1,3 +1,6 @@
+-- SPDX-FileCopyrightText: 2026 Scitrera LLC
+-- SPDX-License-Identifier: AGPL-3.0-only
+
 -- Cue-anchor storage for the Memora-inspired cue retrieval channel.
 --
 -- A cue anchor is a short "[entity] + [aspect]" semantic key generated per

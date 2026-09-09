@@ -16,8 +16,9 @@ FROM ${BASE_IMAGE}
 COPY --from=builder /extension-root/usr/lib/postgresql/17/lib/ /usr/lib/postgresql/17/lib/
 COPY --from=builder /extension-root/usr/share/postgresql/17/extension/ /usr/share/postgresql/17/extension/
 COPY --from=builder /extension-notices/ /usr/share/licenses/memorylayer/extensions/
-COPY LICENSE NOTICE THIRD_PARTY_NOTICES.md /usr/share/licenses/memorylayer/
-LABEL org.opencontainers.image.licenses="AGPL-3.0-only"
+COPY postgres-container/LICENSE postgres-container/NOTICE /usr/share/licenses/memorylayer/
+# Clear inherited single-license metadata; components retain their own terms.
+LABEL org.opencontainers.image.licenses=""
 LABEL org.opencontainers.image.source="https://github.com/scitrera/memorylayer-enterprise"
 # Loaded by initdb; the smoke test also sets this explicitly for both variants.
 RUN echo "shared_preload_libraries = 'pg_textsearch'" >> /usr/share/postgresql/postgresql.conf.sample

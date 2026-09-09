@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Aether service registration for data-connectors.
 
 Registers the FastAPI app at ``sv::data-connectors:{specifier}``, fronted by

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Document ingestion domain models."""
 from datetime import datetime, timezone
 from enum import Enum

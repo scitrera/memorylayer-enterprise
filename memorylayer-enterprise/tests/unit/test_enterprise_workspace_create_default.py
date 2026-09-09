@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Enterprise must not create workspaces as a side effect of resolving one.
 
 In enterprise a workspace is a billed, ACL'd, tenant-scoped container: it comes

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Crop figure regions out of a page render.
 
 Unlimited-OCR marks every figure with an exact box and emits no text for it, so

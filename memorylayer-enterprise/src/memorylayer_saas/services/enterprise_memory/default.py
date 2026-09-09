@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Enterprise Memory Service with cold tier support and trajectory tracing."""
 import json
 from datetime import UTC, datetime, timezone

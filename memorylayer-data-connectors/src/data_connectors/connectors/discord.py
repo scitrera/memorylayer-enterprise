@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Discord connector — syncs channel messages via the Discord REST API.
 
 Discovers messages via ``httpx`` (no ``discord.py`` bot framework needed),

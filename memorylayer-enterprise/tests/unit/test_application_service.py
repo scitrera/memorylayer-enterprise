@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Unit tests for ApplicationService capability binding + bundle resolution.
 
 Mirrors the SQLite-compatible test pattern used by test_skill_storage_postgres.py:

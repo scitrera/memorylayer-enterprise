@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Per-page image-embed precompute + blob persistence.
 
 During the embed phase, for each page that has a rendered image, we ask the

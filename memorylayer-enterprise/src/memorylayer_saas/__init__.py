@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """MemoryLayer SaaS - Enterprise extensions for MemoryLayer.ai.
 
 This package provides enterprise features for MemoryLayer:

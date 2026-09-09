@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Reclaiming uploads that were started but never completed.
 
 An upload mints an entry and finalizes it once the bytes land. When the

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Unit tests for the doc_added task handler.
 
 Tests the ``DocAddedTaskHandler`` in isolation with mocked dependencies. The

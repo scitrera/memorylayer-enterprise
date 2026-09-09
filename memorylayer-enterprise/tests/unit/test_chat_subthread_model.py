@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """DB-free checks for the chat-thread sub-thread schema (parent_thread column,
 child-lookup index, and migration 028 chain).
 

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Rename memory_spaces to contexts and space_id to context_id.
 
 Revision ID: 004

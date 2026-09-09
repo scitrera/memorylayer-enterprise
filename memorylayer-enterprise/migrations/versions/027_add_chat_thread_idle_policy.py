@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Add per-thread idle policy + archive flag to chat_threads.
 
 Revision ID: 027

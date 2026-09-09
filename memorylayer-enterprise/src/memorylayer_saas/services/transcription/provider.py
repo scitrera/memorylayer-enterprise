@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """One OCR endpoint, spoken to over OpenAI ``/v1/chat/completions``.
 
 A provider is a contract (:mod:`.contracts`) plus a URL, auth, and timing. It

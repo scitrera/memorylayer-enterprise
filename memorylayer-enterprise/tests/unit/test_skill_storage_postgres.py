@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Unit tests for Skill storage methods on PostgreSQLBackend.
 
 NOTE: These tests use an in-memory SQLite database via SQLAlchemy's async

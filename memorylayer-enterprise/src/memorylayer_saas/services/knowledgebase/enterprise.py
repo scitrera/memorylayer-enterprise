@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Enterprise Knowledgebase Service — canonical-entity ("proper entity graph") articles.
 
 ``EnterpriseKnowledgebaseService`` extends the OSS ``DefaultKnowledgebaseService``

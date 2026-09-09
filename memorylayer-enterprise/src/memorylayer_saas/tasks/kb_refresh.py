@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Recurring knowledgebase-refresh reconciler.
 
 The KB is normally refreshed event-driven: ``memorylayer.ingest_complete`` /

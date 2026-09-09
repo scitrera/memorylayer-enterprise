@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Recurring cold-tier archival sweep.
 
 Periodically moves eligible hot-tier memories to the LEANN cold tier across all

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """End-to-end integration test for the local_fs document ingestion pipeline.
 
 Exercises the full flow:

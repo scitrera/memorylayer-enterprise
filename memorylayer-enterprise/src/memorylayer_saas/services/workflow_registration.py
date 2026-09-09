@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Workflow rule registration for the ingest/decompose → KB coalesce-join pipeline.
 
 Registers two Aether workflow rules that feed a single per-workspace

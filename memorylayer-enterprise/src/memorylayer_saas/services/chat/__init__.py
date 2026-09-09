@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Enterprise chat service package.
 
 Ships an :class:`EnterpriseChatService` (provider 'enterprise') that extends the

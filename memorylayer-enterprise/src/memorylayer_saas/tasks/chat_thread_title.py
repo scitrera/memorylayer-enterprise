@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Chat-thread auto-title task handler (enterprise).
 
 Background task that (re)generates a short LLM display title for a chat thread

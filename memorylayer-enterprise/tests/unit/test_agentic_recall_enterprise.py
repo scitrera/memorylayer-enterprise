@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Enterprise Phase 2: agentic EXPAND/RE_QUERY/STOP recall ("Memora-Control").
 
 These tests cover the ENTERPRISE ``_recall_agentic`` controller loop and its

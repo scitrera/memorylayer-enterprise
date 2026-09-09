@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Persist figures cropped out of a page render.
 
 A grounded OCR model marks an illustration with a bounding box and emits no

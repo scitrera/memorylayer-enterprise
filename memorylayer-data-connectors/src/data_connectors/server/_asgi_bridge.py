@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """ASGI bridge for dispatching Aether proxy requests into FastAPI.
 
 Mirrors the pattern at ``memorylayer_server/services/aether_service/asgi_bridge.py``.

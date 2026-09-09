@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """S3-compatible blob storage backend.
 
 Provides presigned URL generation (upload/download) and direct put/get/delete

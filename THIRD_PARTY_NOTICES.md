@@ -5,12 +5,21 @@ retain their original licenses. This source snapshot does not vendor the
 MemoryLayer core, SDKs, storage services, Aether, model weights, or installed
 Python/JavaScript dependency trees.
 
+The PostgreSQL image collection is excluded from the blanket AGPL grant.
+Scitrera's recipes and build glue in `postgres-container/` are Apache-2.0;
+see that directory's [LICENSE](postgres-container/LICENSE) and
+[NOTICE](postgres-container/NOTICE). Each assembled image component retains
+its own terms. The recipes copy their own notices and extension notices into
+the images, without copying the root AGPL license as an image-wide grant.
+
 ## Dashboard components
 
 The dashboard identifies shadcn/ui as its component source. Retain the
 [shadcn/ui MIT license](third_party/licenses/shadcn-ui/LICENSE) with the adapted
 components in `memorylayer-admin/src/components/ui/`. Upstream:
 <https://github.com/shadcn-ui/ui>. The copied license credits shadcn (2023).
+Those adapted source files carry MIT SPDX identifiers and the upstream
+copyright attribution; the first-party application files carry AGPL-3.0-only.
 
 ## Separately supplied Scitrera dependencies
 

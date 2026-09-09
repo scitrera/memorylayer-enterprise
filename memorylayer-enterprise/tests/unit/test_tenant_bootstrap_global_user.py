@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Enterprise tenant bootstrap of the reserved global workspaces.
 
 DefaultTenantService.ensure_default_tenant() must create BOTH the _global and

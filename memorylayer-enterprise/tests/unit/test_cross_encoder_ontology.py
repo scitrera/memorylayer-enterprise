@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Unit tests for the cross-encoder (NLI) ontology relationship classifier.
 
 These exercise the NLI-label -> relationship mapping WITHOUT a live NLI service:

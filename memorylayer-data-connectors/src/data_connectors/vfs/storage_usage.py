@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Per-tenant storage-usage rollup, cached, combining blobgw + mlfs metadata.
 
 data-connectors is the single aggregation point for a tenant's storage usage. It

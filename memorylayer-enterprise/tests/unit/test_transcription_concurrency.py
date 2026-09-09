@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Unit tests for bounded concurrency and overload backoff on the direct path.
 
 Two invariants matter here and neither is visible from a single-request test:

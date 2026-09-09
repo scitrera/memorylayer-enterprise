@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """FastAPI application for the data-connectors service.
 
 Exposes the HTTP surface described in the plan:

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Shared resolution of the prompt-embeds inference LLM client.
 
 The grounded document-chat read path (``api/v1/document_chat.py``) and the

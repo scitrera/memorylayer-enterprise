@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Task handler for ``memorylayer-task.representation_consolidation`` pool tasks.
 
 The P3 consolidation layer: a leased/coalesced background task that DERIVES +

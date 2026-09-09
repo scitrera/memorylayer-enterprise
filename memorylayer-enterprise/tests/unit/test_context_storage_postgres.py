@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Unit tests for Context storage methods on PostgreSQLBackend.
 
 Focus: delete_context (newly added). Validates the ORM/SQLAlchemy layer using an

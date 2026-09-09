@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Real-model integration test for the Qwen3.6 image-embed provider.
 
 Loads ``Qwen/Qwen3.6-27B-FP8`` via HF Transformers and verifies the

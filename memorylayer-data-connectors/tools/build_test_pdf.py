@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Generate a minimal 1-page PDF for integration testing.
 
 Produces a valid PDF without any external dependencies (no reportlab,

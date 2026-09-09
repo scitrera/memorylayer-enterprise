@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Public distributions require an operator to opt in to identity headers."""
 from memorylayer_saas.config import DEFAULT_MEMORYLAYER_LLM_IDENTITY_HEADER_HOSTS
 from memorylayer_server.config import (

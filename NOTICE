@@ -5,6 +5,11 @@ The Scitrera extensions are licensed under AGPL-3.0-only. This notice selects
 version 3 only, not the "or any later version" alternative illustrated in the
 license's application appendix. See LICENSE for the full license text.
 
+The PostgreSQL image collection is excluded from that blanket grant. Scitrera's
+build glue in postgres-container/ is Apache-2.0; see its LICENSE and NOTICE.
+Assembled PostgreSQL images retain each component's separate license terms.
+The adapted shadcn/ui source components retain MIT, as marked in their headers.
+
 The separate MemoryLayer core, SDKs, and other Apache-2.0 dependencies retain
 their original licenses and notices. The MemoryLayer Storage Python client
 also retains Apache-2.0. Third-party components retain their own licenses.

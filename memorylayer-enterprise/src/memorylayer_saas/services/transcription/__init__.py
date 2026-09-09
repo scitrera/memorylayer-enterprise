@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Page transcription for the document ingestion pipeline.
 
 Selected with ``MEMORYLAYER_TRANSCRIPTION_SERVICE``:

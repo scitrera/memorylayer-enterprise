@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Microsoft Teams connector — syncs channel messages via Microsoft Graph API.
 
 Discovers messages via Azure AD client-credentials OAuth, materializes

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Task handler for ``memorylayer-task.doc_added`` pool tasks.
 
 Triggered by ``data-connectors`` when a new VFS entry is registered.  The

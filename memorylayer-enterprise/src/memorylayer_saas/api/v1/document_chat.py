@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Grounded document chat over stored page image embeds.
 
 `POST /v1/documents/chat`: answer a question grounded in document pages, by

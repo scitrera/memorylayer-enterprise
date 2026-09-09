@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Unit tests for the GLiNER2 typed-NER extraction provider.
 
 These exercise the type-carrying contract WITHOUT a live GLiNER2 HTTP service:

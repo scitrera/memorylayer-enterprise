@@ -43,6 +43,7 @@ runs:
         build-args: |
           BASE_IMAGE=${{ fromJSON(inputs.plan).base_image }}
         labels: |
+          org.opencontainers.image.licenses=
           org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
           org.opencontainers.image.revision=${{ github.sha }}
           org.opencontainers.image.version=${{ fromJSON(inputs.plan).version }}
@@ -67,6 +68,7 @@ runs:
         build-args: |
           BASE_IMAGE=${{ fromJSON(inputs.plan).base_image }}
         labels: |
+          org.opencontainers.image.licenses=
           org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
           org.opencontainers.image.revision=${{ github.sha }}
           org.opencontainers.image.version=${{ fromJSON(inputs.plan).version }}

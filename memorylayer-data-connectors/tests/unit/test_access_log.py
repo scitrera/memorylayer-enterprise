@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Probe access lines are rolled up instead of logged one-per-request.
 
 kubelet polls /healthz + /livez every few seconds forever while real traffic

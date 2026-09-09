@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """LLM update-vs-add merge consolidator (enterprise, Phase 1c).
 
 The OSS tier merges a near-duplicate memory deterministically: the new content

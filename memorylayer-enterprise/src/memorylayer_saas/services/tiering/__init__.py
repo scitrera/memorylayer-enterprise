@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 from scitrera_app_framework import Variables
 
 from .base import TieringStats, ArchivalResult, RestoreResult, TieringServicePluginBase, EXT_TIERING_SERVICE

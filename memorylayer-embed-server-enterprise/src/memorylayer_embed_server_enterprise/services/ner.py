@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """GLiNER2 typed-NER service for the embed server.
 
 Loads ``fastino/gliner2-base-v1`` (config-overridable) once at startup and runs

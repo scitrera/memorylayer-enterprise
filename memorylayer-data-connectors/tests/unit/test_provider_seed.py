@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Tests for the built-in manual_upload provider seed.
 
 Direct uploads tag vfs_entries.connector_id='manual_upload', which FKs to

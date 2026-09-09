@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2023 shadcn
+// SPDX-License-Identifier: MIT
+
 "use client"
 
 import * as React from "react"

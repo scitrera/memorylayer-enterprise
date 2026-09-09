@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Tests for the alembic stamp-vs-upgrade decision.
 
 Guards the fix for the "stamp head on a pre-existing untracked DB" trap, where a

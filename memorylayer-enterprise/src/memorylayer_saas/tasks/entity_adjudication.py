@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Lazy-LLM entity adjudication task handler (enterprise, entity-registry follow-on 2).
 
 The embedding-fuzzy tier (``PostgreSQLEntityRegistryService.resolve``) refuses to

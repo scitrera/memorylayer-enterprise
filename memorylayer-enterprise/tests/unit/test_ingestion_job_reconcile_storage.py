@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Storage-level tests for the ingestion-job coalescing/reconcile primitives.
 
 Exercises the two new storage methods against a real (OSS) SQLite backend, which

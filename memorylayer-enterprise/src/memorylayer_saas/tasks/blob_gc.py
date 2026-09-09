@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Task handler for the document blob-store orphan garbage-collection sweep.
 
 A periodic, low-priority reconciliation pass over the document blob store. It

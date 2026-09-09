@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Thread-title change broadcast helper (enterprise).
 
 Pushes a spec-compliant ``rename`` control message to the thread owner over

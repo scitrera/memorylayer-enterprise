@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Scitrera LLC
+// SPDX-License-Identifier: AGPL-3.0-only
+
 import { RELATIONSHIP_TO_CATEGORY } from "./constants";
 
 /** Memory type -> hex color for node borders */

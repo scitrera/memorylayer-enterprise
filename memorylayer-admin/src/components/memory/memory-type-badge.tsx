@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Scitrera LLC
+// SPDX-License-Identifier: AGPL-3.0-only
+
 import { cn } from "@/lib/cn";
 import { MEMORY_TYPE_COLORS, MEMORY_TYPE_LABELS } from "@/lib/constants";
 

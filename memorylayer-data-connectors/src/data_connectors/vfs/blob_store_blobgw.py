@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """blobgw-backed blob storage backend.
 
 A drop-in, duck-compatible alternative to the S3 :class:`BlobStore` that routes

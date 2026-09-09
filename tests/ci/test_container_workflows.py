@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Container release contracts and nightly retry behavior; no network calls."""
 import importlib.util
 import json
@@ -146,6 +149,30 @@ class WorkflowTests(unittest.TestCase):
             self.assertNotIn("npm publish", path.read_text())
         config = yaml.safe_load((ROOT / "versions.yaml").read_text())
         self.assertEqual(set(config["ci"]["only_workflows"]), {"version-check", "test-python", "test-npm", "build-docker"})
+
+    def test_postgres_license_metadata_cannot_inherit_repository_agpl(self):
+        workflow = self.workflow("build-docker.yml")
+        config = yaml.safe_load((ROOT / "versions.yaml").read_text())
+        self.assertIn("build-docker", config["ci"]["skip_workflows"])
+        for job_name, job in workflow["jobs"].items():
+            for step in job["steps"]:
+                if "docker/metadata-action" not in step.get("uses", ""):
+                    continue
+                expected = "" if "memorylayer-postgres" in job_name else "AGPL-3.0-only"
+                self.assertIn("org.opencontainers.image.licenses=" + expected + "\n", step["with"]["labels"])
+            if job_name.startswith("build-memorylayer-postgres"):
+                build = next(step for step in job["steps"] if "docker/build-push-action" in step.get("uses", ""))
+                self.assertEqual(build["with"]["labels"], "${{ steps.meta.outputs.labels }}")
+        action = yaml.load((ROOT / ".github/actions/build-postgres/action.yml").read_text(), Loader=yaml.BaseLoader)
+        for step in action["runs"]["steps"]:
+            if "docker/build-push-action" in step.get("uses", ""):
+                self.assertIn("org.opencontainers.image.licenses=\n", step["with"]["labels"])
+        for name in ["Dockerfile", "Dockerfile.cnpg"]:
+            source = (ROOT / "postgres-container" / name).read_text()
+            self.assertIn('LABEL org.opencontainers.image.licenses=""', source)
+            self.assertIn("COPY postgres-container/LICENSE postgres-container/NOTICE", source)
+            self.assertNotIn("COPY LICENSE NOTICE", source)
+            self.assertNotIn("AGPL-3.0-only", source)
 
     def test_container_version_matches_the_root_release_tag_source(self):
         config = yaml.safe_load((ROOT / "versions.yaml").read_text())

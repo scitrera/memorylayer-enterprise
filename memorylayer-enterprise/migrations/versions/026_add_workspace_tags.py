@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Add tags array to workspaces for tag-based workspace lookup.
 
 Revision ID: 026

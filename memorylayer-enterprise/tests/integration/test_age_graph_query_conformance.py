@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Conformance + security tests: AGE graph-QUERY backend vs relational golden (P2 Track A).
 
 Proves that ``AgeGraphQueryService`` returns results that — after UUID-stripping

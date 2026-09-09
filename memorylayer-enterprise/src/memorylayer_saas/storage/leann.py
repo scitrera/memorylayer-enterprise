@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """LEANN (Learning-Efficient Approximate Nearest Neighbor) cold tier storage.
 
 Provides graph serialization/deserialization using CSR (Compressed Sparse Row) format

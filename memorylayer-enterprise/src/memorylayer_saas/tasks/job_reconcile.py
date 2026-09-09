@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Task handler for the ingestion-job orphan-reconcile sweep.
 
 A periodic safety net for the ingestion-job lifecycle. Create-time coalescing

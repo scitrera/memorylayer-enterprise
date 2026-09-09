@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Sync engine — polls connectors and emits Aether POOL tasks.
 
 When a connector discovers new or changed content, the sync engine:

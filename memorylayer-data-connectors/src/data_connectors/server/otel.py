@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """OpenTelemetry TRACE initialization for the data-connectors service.
 
 Mirrors the MemoryLayer OTelInitPlugin

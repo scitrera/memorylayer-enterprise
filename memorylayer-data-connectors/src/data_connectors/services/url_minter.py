@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """URL minting service.
 
 Generates presigned URLs for upload, download, and JIT fetch operations.

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Wire codec for image-embed + grid tensors.
 
 The visual tokenizer ships two tensors per page over the wire:

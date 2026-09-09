@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Aether-backed API key store for MemoryLayer Enterprise.
 
 Resolves provider API keys from Aether secure KV first, falling back to the

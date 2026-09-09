@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Transport-fault retry in the transcription provider.
 
 The retry loop originally inspected only `response.status_code`, so an

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Task handler for ``memorylayer-task.kb_update`` pool tasks.
 
 Created by Aether's native workflow engine when a per-workspace **coalesce

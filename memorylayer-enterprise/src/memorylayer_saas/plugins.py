@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 # TODO: this file should not exist; all plugins should be divided among their service/api packages
 """Enterprise plugin definitions for MemoryLayer SaaS.
 

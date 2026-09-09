@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Integration test for the enterprise name-embedding ANN storage method.
 
 pgvector's cosine operator (``<=>``) needs a real PostgreSQL, so this test is

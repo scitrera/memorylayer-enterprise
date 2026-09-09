@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Application service for MemoryLayer Enterprise."""
 import logging
 from datetime import datetime, timezone

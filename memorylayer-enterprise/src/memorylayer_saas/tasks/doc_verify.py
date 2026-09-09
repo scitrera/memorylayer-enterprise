@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Task handler for ``memorylayer-task.doc_verify`` — reconcile / gap-fill sweep.
 
 The Phase-3 backstop of the idempotent-ingestion design (§8). It reuses the

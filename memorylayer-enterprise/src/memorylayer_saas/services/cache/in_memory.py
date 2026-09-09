@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """In-memory enterprise cache service.
 
 A single-process :class:`EnterpriseCacheService` backed by an LRU map with

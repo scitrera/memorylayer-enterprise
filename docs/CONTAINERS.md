@@ -21,12 +21,20 @@ Embedding extensions and the dashboard remain included as source components.
 This configuration publishes no Python or npm packages and builds no separate
 embedding or dashboard image.
 
+The enterprise and connector applications are AGPL-3.0-only. PostgreSQL images
+are collections of separately licensed components, as described in
+[postgres-container/NOTICE](../postgres-container/NOTICE). Their Dockerfiles
+and both CI paths deliberately leave `org.opencontainers.image.licenses` empty;
+the repository's AGPL license must not be inferred as an image-wide license.
+The Apache-2.0 license for Scitrera's PostgreSQL build glue and the pinned
+extensions' notices are included in those images, alongside base-image notices.
+
 ## repo-tools configuration
 
 [`versions.yaml`](../versions.yaml) uses `scitrera-repo-tools==0.1.29`, following
 the [MemoryLayer Storage](https://github.com/scitrera/memorylayer-storage)
 repository's approach. It manages package version metadata and generates
-`version-check.yml`, `test-python.yml`, `test-npm.yml`, and `build-docker.yml`:
+`version-check.yml`, `test-python.yml`, and `test-npm.yml`:
 
 ```sh
 uvx --from scitrera-repo-tools==0.1.29 sync-versions --check
@@ -38,6 +46,13 @@ uvx --from scitrera-repo-tools==0.1.29 generate-ci-gha --force
 The workflow allowlist excludes registry package publication. In this
 repo-tools version, an empty `publish_projects` list selects all projects;
 it must not be used to disable publication.
+
+`build-docker.yml` is adapted from repo-tools' native workflow. Version 0.1.29
+cannot override image-specific license labels, so `ci.skip_workflows` excludes
+that file from regeneration. It retains the same version lookup and native
+build/merge design, with explicit AGPL application labels and empty PostgreSQL
+collection labels. Workflow regression checks cover those overrides. Preserve
+them when updating the Docker workflow or adopting newer repo-tools support.
 
 The native publishing template in 0.1.29 pushes platform digests even when
 configured to build on pull requests. Therefore `build_on_pr` is disabled and

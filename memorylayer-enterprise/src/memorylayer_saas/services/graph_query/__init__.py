@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Enterprise Apache-AGE graph-QUERY backend (P2 Track A).
 
 Re-exports the AGE graph-query service + plugin. The plugin is auto-discovered

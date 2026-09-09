@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """PostgreSQL adapter conformance for OSS typed versioned resources."""
 
 from datetime import datetime

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Unit tests for the Aether-backed distributed task service.
 
 All Aether SDK interactions are mocked so no live gateway is required.

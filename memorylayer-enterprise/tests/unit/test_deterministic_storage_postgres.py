@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """PostgreSQL parity checks for deterministic-memory storage contracts."""
 
 from importlib.util import module_from_spec, spec_from_file_location

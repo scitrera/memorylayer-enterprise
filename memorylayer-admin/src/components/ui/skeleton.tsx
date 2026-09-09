@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2023 shadcn
+// SPDX-License-Identifier: MIT
+
 import { cn } from "@/lib/cn"
 
 function Skeleton({

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """GitHub connector — syncs repository content, issues, and PRs via GitHub REST API.
 
 Discovers content via ``httpx`` async client, computes content hashes,

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Pydantic models for the GLiNER2 NER API (POST /v1/ner)."""
 
 from typing import Annotated

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Storage-agnostic blob service for documents, page images, and transcripts.
 
 Uses fsspec to abstract over local filesystem and S3-compatible storage.

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Async PostgreSQL engine / session management for data-connectors.
 
 When ``DC_POSTGRESQL_URL`` is set the service persists the VFS catalog and

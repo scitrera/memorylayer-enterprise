@@ -1,3 +1,6 @@
+-- SPDX-FileCopyrightText: 2026 Scitrera LLC
+-- SPDX-License-Identifier: AGPL-3.0-only
+
 -- ColBERT-style token-flatten index for indexed late-interaction (MaxSim).
 -- The brute-force max_sim path (search_memories_multivector) seq-scans every
 -- memory's token array and does not scale. This satellite table stores one row

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Apache-AGE-backed graph-QUERY service (ENTERPRISE-only; P2 Track A).
 
 ``AgeGraphQueryService`` is the AGE implementation of the recall/RAG-facing

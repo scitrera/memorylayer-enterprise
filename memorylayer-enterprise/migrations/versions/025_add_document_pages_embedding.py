@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Add single-vector embedding column to document_pages (de-brittle the JSON stash).
 
 Revision ID: 025

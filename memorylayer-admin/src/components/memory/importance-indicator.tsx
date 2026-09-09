@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Scitrera LLC
+// SPDX-License-Identifier: AGPL-3.0-only
+
 import { cn } from "@/lib/cn";
 import { getImportanceColor } from "@/lib/constants";
 import { formatImportance } from "@/lib/format";

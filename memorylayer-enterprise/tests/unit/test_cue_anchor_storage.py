@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """DB-free checks for the enterprise cue-anchor storage (cue retrieval channel).
 
 Covers the ``CueAnchorModel`` schema (columns, table name, HNSW vector index),

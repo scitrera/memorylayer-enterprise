@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Per-tenant mlfs metadata storage stats.
 
 blobgw reports the shared pack substrate (physical / deduped-logical /

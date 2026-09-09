@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """GLiNER2-backed NER extraction provider for MemoryLayer enterprise.
 
 Replaces the OSS regex ``extract_entities`` with real typed NER by calling the

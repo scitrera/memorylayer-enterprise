@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Split document knowledge phase out of ingestion status.
 
 ``documents.status`` conflates two questions that finish at very different

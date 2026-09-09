@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """PostgreSQL authority for OSS typed versioned-resource contracts."""
 
 from __future__ import annotations

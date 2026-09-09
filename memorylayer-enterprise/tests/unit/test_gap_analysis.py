@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Unit tests for analyze_document_gaps (Phase 1 gap-fill primitive).
 
 Uses lightweight fakes for storage + Variables — the primitive only reads

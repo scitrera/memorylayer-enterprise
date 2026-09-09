@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Worker runner - connects to Aether and dispatches tasks to handlers.
 
 The WorkerRunner initializes the MemoryLayer plugin system (same services as

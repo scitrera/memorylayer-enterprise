@@ -1,0 +1,25 @@
+MemoryLayer PostgreSQL container recipes
+Copyright (c) 2026 Scitrera LLC.
+
+Scitrera's Dockerfiles, build-extensions.sh, and init.sql in this directory
+are licensed under the Apache License, Version 2.0. See LICENSE alongside
+this notice. This grant covers the build glue, not the assembled images.
+
+The memorylayer-postgres and memorylayer-postgres-cnpg images are collections
+of independently licensed components. No single AGPL license is asserted for
+either image. Each component retains its own license, notices, and obligations:
+
+- PostgreSQL and pgvector retain their PostgreSQL License terms.
+- Apache AGE and pg_textsearch retain the licenses and notices copied from
+  their pinned source revisions under extensions/<component>/.
+- Base-image packages, operating-system tools, and CloudNativePG tooling
+  retain their original terms and notices, including those under
+  /usr/share/doc/<package>/copyright.
+
+Review the actual base-image digest, extension source revisions, and resolved
+package inventory for a distribution. This notice is not an exhaustive
+inventory or a substitute for those component licenses. The image's OCI
+license field is intentionally empty; it does not assert a license for the
+whole collection.
+
+Build source: https://github.com/scitrera/memorylayer-enterprise/tree/main/postgres-container

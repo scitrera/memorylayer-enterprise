@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Per-document decomposition opt-out, declared at upload.
 
 Suppresses only the fan-out. The composite page memory is still created, so

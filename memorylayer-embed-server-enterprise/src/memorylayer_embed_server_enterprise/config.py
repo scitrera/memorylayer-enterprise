@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Configuration keys for the enterprise visual-tokenizer overlay.
 
 These keys used to live in ``memorylayer_embed_server.config`` but moved

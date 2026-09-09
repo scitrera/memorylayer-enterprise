@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Normalization of the embed-server ``POST /v1/transcribe`` response.
 
 The wire shape is the embed-server's ``TranscriptionResponse``::

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Enterprise Representation Service — LLM-derived beliefs (P3 layer / slice 2).
 
 ``EnterpriseRepresentationService`` extends the OSS

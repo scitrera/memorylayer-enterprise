@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Two-phase document status: retrieval readiness vs knowledge extraction.
 
 ``DocumentStatus`` goes COMPLETED once pages, embeddings and composite memories

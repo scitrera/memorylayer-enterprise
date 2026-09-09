@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Unit tests for the Aether-backed API key store (TI2 wire-key parity).
 
 These import ``memorylayer_server.services.api_key_store`` from the OSS server.

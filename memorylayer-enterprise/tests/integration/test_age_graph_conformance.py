@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Byte-identical parity conformance + security tests: AGE backend vs NetworkX.
 
 This is the crux of the AGE graph-analysis backend. It proves that

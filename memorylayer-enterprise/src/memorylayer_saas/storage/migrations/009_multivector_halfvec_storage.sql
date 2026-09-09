@@ -1,3 +1,6 @@
+-- SPDX-FileCopyrightText: 2026 Scitrera LLC
+-- SPDX-License-Identifier: AGPL-3.0-only
+
 -- Production halfvec storage migration for the multivector pipeline, and the
 -- authoritative owner of the token HNSW candidate indexes.
 --

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Deleting a VFS entry takes its bytes with it.
 
 The catalog row and the blob are two halves of one file. Deleting only the

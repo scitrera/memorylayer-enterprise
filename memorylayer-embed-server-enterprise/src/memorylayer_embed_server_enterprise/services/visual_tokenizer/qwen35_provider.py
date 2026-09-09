@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Qwen3.5/3.6 vision-tower image-embed provider.
 
 Produces, per page, the **projected vision-tower image embeds** — the model's

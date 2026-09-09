@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Unit tests for the lazy-LLM entity adjudication task handler + enqueue.
 
 These tests exercise the conservative adjudication control-flow WITHOUT a live

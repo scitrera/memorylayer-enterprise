@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """blobgw-backed blob storage service.
 
 A drop-in alternative to the default fsspec-backed :class:`BlobStorageService`

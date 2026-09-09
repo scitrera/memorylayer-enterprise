@@ -42,6 +42,15 @@ of a Contribution.
   uses AGPL-3.0-only; the separate MemoryLayer OSS core and SDKs remain
   Apache-2.0 and follow their own contribution process. Storage also has its
   own repository and contribution policy.
+- Add language-appropriate `SPDX-FileCopyrightText` and
+  `SPDX-License-Identifier: AGPL-3.0-only` headers to first-party application
+  source, tests, scripts, SQL migrations, and source templates. Preserve
+  shebangs and Docker syntax directives as the first line. The adapted
+  shadcn/ui files retain MIT and their upstream attribution. PostgreSQL
+  container files are excluded from these AGPL headers; their build glue is
+  Apache-2.0 and the images retain each component's terms as described in
+  [postgres-container/NOTICE](postgres-container/NOTICE). Do not add comments
+  to JSON, lockfiles, fixtures, or generated files that do not support them.
 - Use synthetic fixtures. Keep customer documents, credentials, private
   configuration, database exports, and model data outside the repository.
 - Follow the [development guide](docs/DEVELOPMENT.md), run checks relevant to

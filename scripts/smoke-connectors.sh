@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 # This service has an environment-driven entrypoint; --help starts the server.
 set -euo pipefail
 image="${1:?Usage: smoke-connectors.sh IMAGE}"

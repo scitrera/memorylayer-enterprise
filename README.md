@@ -58,6 +58,12 @@ The Scitrera extensions in this repository are licensed under the GNU Affero
 General Public License, version 3 only (`AGPL-3.0-only`). See [LICENSE](LICENSE)
 and [NOTICE](NOTICE). This software is provided without warranty.
 
+Source headers identify file-level licenses. The adapted shadcn/ui components
+retain MIT. The [PostgreSQL build glue](postgres-container/NOTICE) is Apache-2.0;
+the assembled PostgreSQL images retain each component's license and are not
+licensed as a whole under AGPL. Their image license label is left empty rather
+than assigning one license to the collection.
+
 The existing MemoryLayer OSS core and SDKs retain **Apache-2.0**. They are
 separate dependencies and are not relicensed by this repository. MemoryLayer
 Storage retains its own licensing: AGPL-3.0-only for the storage services and

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Enterprise representation backend (LLM-derived beliefs layer).
 
 Re-exports the enterprise service + plugin. The plugin is auto-discovered by the

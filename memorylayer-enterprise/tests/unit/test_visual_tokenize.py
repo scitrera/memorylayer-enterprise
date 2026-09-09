@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Unit tests for the enterprise visual-tokenizer client helper.
 
 Verifies the helper builds the ``/v1/visual-tokenize`` payload exactly and

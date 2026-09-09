@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Unit tests for enterprise chat-thread auto-titling.
 
 All external dependencies (Aether client, LLM service, storage) are mocked — no

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Add entity attribution columns (observer_id, subject_id) to memories table.
 
 Syncs with OSS Memory model v3 entity attribution fields.

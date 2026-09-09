@@ -1,3 +1,6 @@
+-- SPDX-FileCopyrightText: 2026 Scitrera LLC
+-- SPDX-License-Identifier: AGPL-3.0-only
+
 -- pg_textsearch BM25 full-text search for the hybrid-retrieval keyword arm.
 -- Replaces the unindexed to_tsvector / ts_rank_cd path (which underperformed
 -- and ran a sequential scan) with an indexed BM25 ranking. Idempotent: runs on

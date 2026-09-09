@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Local filesystem connector -- syncs files from a local directory.
 
 Walks a base directory recursively, computes SHA256 content hashes,

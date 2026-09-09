@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Plugin that wires the GLiNER2 NER service into the embed-server.
 
 When this enterprise package is installed alongside ``memorylayer-embed-server``

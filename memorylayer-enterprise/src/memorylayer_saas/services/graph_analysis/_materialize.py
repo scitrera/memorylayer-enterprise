@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Shared Apache-AGE workspace-subgraph materialization (ENTERPRISE-only).
 
 This module holds the delete-then-MERGE half of the materialize step that was

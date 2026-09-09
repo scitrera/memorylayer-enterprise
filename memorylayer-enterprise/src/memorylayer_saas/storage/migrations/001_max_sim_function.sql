@@ -1,3 +1,6 @@
+-- SPDX-FileCopyrightText: 2026 Scitrera LLC
+-- SPDX-License-Identifier: AGPL-3.0-only
+
 -- MaxSim function for vector arrays using cosine distance
 -- Used for ColPali/ColBERT late interaction retrieval
 

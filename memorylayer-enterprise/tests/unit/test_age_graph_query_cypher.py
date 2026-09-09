@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Unit tests for the read-only graph-QUERY cypher builders (no database; P2 Track A).
 
 Tests the pure-string + validation contract of the read-only builders added to

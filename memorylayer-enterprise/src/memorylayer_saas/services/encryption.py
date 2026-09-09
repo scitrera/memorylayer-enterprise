@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Encryption utilities for sensitive data stored in the database.
 
 Uses Fernet symmetric encryption (AES-128-CBC + HMAC-SHA256) for authenticated

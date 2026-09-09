@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Enterprise document ingestion service package.
 
 Phase 3 of the Aether convergence relocated the embed-server client plugin

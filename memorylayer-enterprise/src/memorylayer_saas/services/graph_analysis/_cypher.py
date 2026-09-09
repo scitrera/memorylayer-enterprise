@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """openCypher query builders for the Apache-AGE graph-analysis backend.
 
 All queries use AGE 1.5+ parameterized cypher: the third argument to

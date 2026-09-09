@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """DB-free checks for the chat-thread idle-policy schema (columns, indexes,
 and migration 027 chain).
 

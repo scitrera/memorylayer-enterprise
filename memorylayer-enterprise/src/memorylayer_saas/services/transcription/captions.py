@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Context-grounded captions for figures a grounded OCR model leaves silent.
 
 The OCR model marks an illustration with a box and emits no text, so the

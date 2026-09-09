@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Path-agnostic document ingestion gap analysis (Phase 1).
 
 ``analyze_document_gaps`` reads the *persisted* state of a document (pages,

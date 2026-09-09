@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Enterprise entity-registry backend (embedding-fuzzy resolution tier).
 
 Re-exports the enterprise service + plugin. The plugin is auto-discovered by the

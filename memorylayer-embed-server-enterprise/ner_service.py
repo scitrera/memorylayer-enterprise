@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """DECOMMISSIONED — the standalone GLiNER2 NER service has been productionized.
 
 This file used to run a separate FastAPI app on :61055 inside the bf-ml-embed

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Model-specific prompt / decode / extraction contracts for page OCR.
 
 A *contract* is everything about talking to one OCR model that is not the URL:

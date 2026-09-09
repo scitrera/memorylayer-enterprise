@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Idempotent Apache-AGE bootstrap for the graph-analysis backend.
 
 Bootstrap duties:

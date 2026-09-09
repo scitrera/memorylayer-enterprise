@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Office / HTML -> PDF conversion via LibreOffice (``soffice``).
 
 HTML, DOCX and PPTX uploads are converted to PDF so they flow through the

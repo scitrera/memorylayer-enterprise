@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Wikidata entity linker (enterprise) — canonical entity -> Wikidata QID.
 
 Selected with ``MEMORYLAYER_ENTITY_LINKER_PROVIDER=wikidata`` (opt-in per tenant;

@@ -1,3 +1,6 @@
+-- SPDX-FileCopyrightText: 2026 Scitrera LLC
+-- SPDX-License-Identifier: AGPL-3.0-only
+
 -- Mirror of alembic migration 016_add_chat_thread_ownership.py for the
 -- runtime _run_migrations() path. PostgreSQLBackend.connect() runs
 -- Base.metadata create_all (which only creates missing tables, never

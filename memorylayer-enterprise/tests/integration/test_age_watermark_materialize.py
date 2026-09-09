@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Integration tests for P2 strategy-C watermark-gated AGE materialize (Gate B).
 
 The AGE materialize-on-read normally does a full scope-DELETE-then-MERGE on EVERY call.

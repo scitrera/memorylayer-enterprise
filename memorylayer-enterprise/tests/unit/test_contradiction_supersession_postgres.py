@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Enterprise parity for recall-side supersession.
 
 `newer_memory_id` — which of two conflicting memories is the CURRENT one — was computed by

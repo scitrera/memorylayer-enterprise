@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Base definitions for enterprise memory service plugin."""
 from scitrera_app_framework.api import Plugin, Variables
 

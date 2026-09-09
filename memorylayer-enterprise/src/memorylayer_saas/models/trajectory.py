@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Trajectory models for retrieval observability.
 
 Trajectories record the decision-making process during memory recall,

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Unit tests for the AGE -> NetworkX fail-open fallback (B3).
 
 AGE is the enterprise default graph backend, but it must never fail the KB

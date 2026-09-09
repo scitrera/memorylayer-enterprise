@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Slack connector — syncs channel messages from Slack.
 
 Discovers messages via the ``slack_sdk`` async web client, materializes

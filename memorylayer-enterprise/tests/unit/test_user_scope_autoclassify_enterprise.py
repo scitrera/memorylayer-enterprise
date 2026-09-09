@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Enterprise Slice 2: LLM-backed preference-vs-episodic scope classifier.
 
 The OSS routing seam (_route_user_scope) and its knobs are tested in the OSS

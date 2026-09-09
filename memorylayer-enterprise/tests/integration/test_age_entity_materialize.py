@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Graph-moat C1/C2 integration tests: Entity materialization + entity_neighborhood.
 
 C1 (Entity materialization into AGE):

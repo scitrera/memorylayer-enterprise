@@ -1,3 +1,6 @@
+-- SPDX-FileCopyrightText: 2026 Scitrera LLC
+-- SPDX-License-Identifier: AGPL-3.0-only
+
 -- Link cue anchors to the canonical Entity they name (cue retrieval channel).
 --
 -- Adds cue_anchors.entity_id, a nullable FK onto entities(id). Populated at

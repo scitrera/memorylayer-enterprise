@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Scitrera LLC
+# SPDX-License-Identifier: AGPL-3.0-only
+
 """Compatibility shim — embed-server REST client lives in OSS core now.
 
 Phase 3 of the Aether convergence relocated ``EmbedServerClient`` and its
