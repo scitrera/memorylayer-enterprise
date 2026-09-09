@@ -176,16 +176,27 @@ uv run --no-project --with scitrera-repo-tools==0.1.29 python scripts/postgres_u
 On 2026-09-08 both PostgreSQL images and the connector image built and passed
 smoke checks locally on native arm64, using public dependencies. Connector
 checks cover dependency consistency and `/healthz` with in-memory defaults,
-not database/Aether integration. Hosted amd64/arm64 jobs and registry promotion
-have not yet been run for this candidate.
+not database/Aether integration. Registry promotion remains untested.
 
 On 2026-09-09 the enterprise image also built on native arm64 with core and RPG
 0.2.0 installed from the pinned public Git checkout. Its CLI,
 `pip check`, AGE/RPG import, and bundled migrations passed smoke checks, and
 1,362 unit tests passed in a fresh public-dependency environment. This clears
-the missing-package blocker; full service/database integration and hosted jobs
-remain unqualified. See [development requirements](DEVELOPMENT.md) for the
+the missing-package blocker; full service/database integration remains
+unqualified. See [development requirements](DEVELOPMENT.md) for the
 client versions and the embedding server's pinned public source dependency.
+
+Private staging on 2026-09-09 passed all eight native amd64/arm64 image build
+and smoke jobs, plus 33 automation tests, in the
+[hosted container checks](https://github.com/scitrera/memorylayer-enterprise/actions/runs/34388837564)
+for commit `e319fb1aec17df0a5f7219ec9a2d87109f7f4fe5`.
+[Hosted Python CI](https://github.com/scitrera/memorylayer-enterprise/actions/runs/34388783662)
+passed 1,362 enterprise and 253 connector unit tests;
+[dashboard CI](https://github.com/scitrera/memorylayer-enterprise/actions/runs/34388783760)
+passed its production build and typecheck. These checks published no images.
+PostgreSQL refresh publication was skipped while the repository was private.
+Database upgrades, full service/Aether integration, browser/backend behavior,
+GPU/model qualification, and actual registry promotion remain separate checks.
 
 Service images install from their included source, run as non-root users,
 carry root license notices and a `pip inspect` inventory, and require runtime

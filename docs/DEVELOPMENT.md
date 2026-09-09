@@ -133,9 +133,10 @@ as a normal pip installation path.
 
 - Choose the first shared container release version for `memorylayer-enterprise`.
   The image policy is four container images with no PyPI/npm publication.
-- Run hosted builds on both architectures. All four containers have passed
-  local arm64 build/smoke checks; enterprise checks cover its CLI, AGE/RPG import,
-  Python dependency consistency, and bundled migrations, not full service startup.
+- Review the [hosted staging results](CONTAINERS.md#local-validation-and-current-limits).
+  All four containers passed hosted amd64/arm64 build and smoke checks.
+  Enterprise checks cover its CLI, AGE/RPG import, Python dependency
+  consistency, and bundled migrations; full service startup remains unqualified.
 - Supply public deployment/Compose examples if needed; private sibling-checkout
   development launchers are not included here.
 - Run database upgrades, full-stack connector ingestion, dashboard runtime, and
@@ -146,8 +147,8 @@ as a normal pip installation path.
 - Keep the deployed source revision available at the public target. The admin
   sidebar links to source/license information; image metadata and the OSS
   source record identify build inputs.
-- Run the prepared repo-tools and container CI in the public repository, rerun
-  secret and private-data review on the final tracked tree, and create a new
-  Git history from reviewed files only.
+- Run the prepared publishing CI after public release approval and rerun
+  secret and private-data review on the final tracked tree. The staging
+  repository was initialized with reviewed files only and no parent history.
 
 This source snapshot does not establish that those release gates have passed.
