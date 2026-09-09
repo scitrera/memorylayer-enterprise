@@ -1,0 +1,4 @@
+# One reviewed OSS revision for core, RPG, and the embedding base.
+# v0.2.0; development overrides never edit this file.
+repository = "https://github.com/scitrera/memorylayer.git"
+commit = "6ee99813f287ff7c20fe85f427032558f1bd56d4"

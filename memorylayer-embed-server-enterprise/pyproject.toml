@@ -1,0 +1,92 @@
+[project]
+name = "memorylayer-embed-server-enterprise"
+version = "0.0.1"
+description = "MemoryLayer.ai Embed Server Enterprise Extensions - Visual tokenizer (Qwen3.5)"
+readme = "README.md"
+requires-python = ">=3.12"
+license = "AGPL-3.0-only"
+license-files = ["LICENSE", "NOTICE"]
+authors = [
+    { name = "scitrera.ai", email = "sales@scitrera.com" }
+]
+keywords = ["ai", "memory", "embedding", "visual-tokenizer", "qwen3.5", "saas"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+# Plugin overlay package: when installed alongside memorylayer-embed-server,
+# the OSS server's plugin discovery picks up the visual-tokenizer routes,
+# service, and lifecycle hooks via register_package_plugins.
+dependencies = [
+    # scripts/dev.py installs this and core from the selected OSS checkout.
+    "memorylayer-embed-server>=0.2.0",
+    "transformers>=5.2.0",
+    "torch>=2.0.0",
+    "accelerate>=0.26.0",
+    "safetensors>=0.4.0",
+    "Pillow>=10.0.0",
+    "zstandard>=0.22.0",
+    # NOTE: gliner2 / gliner (typed-NER for /v1/ner) are DELIBERATELY NOT listed
+    # in this resolved dependency set. gliner2's published metadata pins
+    # ``transformers<5.2`` (a FALSE guard); if pip is allowed to resolve it as a
+    # normal dependency it DOWNGRADES transformers, which breaks vLLM and colpali
+    # in this image. gliner2 runs fine on the transformers 5.9 already present.
+    # They are installed separately, AFTER the main resolve, with --no-deps in
+    # docs/DEVELOPMENT.md. The exact pins live in the
+    # [project.optional-dependencies] ``ner`` group below for discoverability.
+]
+
+[project.optional-dependencies]
+# GLiNER2 typed-NER backend for the /v1/ner endpoint. Pins documented here for
+# discoverability + reproducibility, but these MUST be installed with --no-deps
+# (see the dependencies note above and docs/DEVELOPMENT.md):
+#     pip install --no-deps gliner2==1.3.1 gliner==0.2.26
+# Confirmed working against transformers 5.9.0. Do NOT `pip install .[ner]`
+# without --no-deps — that would re-introduce the transformers downgrade.
+ner = [
+    "gliner2==1.3.1",
+    "gliner==0.2.26",
+]
+dev = [
+    "pytest>=9.0.2",
+    "pytest-asyncio>=1.3.0",
+    "pytest-cov>=7.0.0",
+    "ruff>=0.15.0",
+]
+
+[project.urls]
+Homepage = "https://memorylayer.ai"
+Repository = "https://github.com/scitrera/memorylayer-enterprise"
+Issues = "https://github.com/scitrera/memorylayer-enterprise/issues"
+
+[build-system]
+requires = ["hatchling>=1.27.0"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/memorylayer_embed_server_enterprise"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/memorylayer_embed_server_enterprise", "tests", "README.md", "LICENSE", "NOTICE"]
+
+[tool.ruff]
+line-length = 140
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+# Default selection excludes slow + integration (real-model GPU tests);
+# opt-in with `-m integration` (and RUN_VT_INTEGRATION=1).
+addopts = "-m 'not slow and not integration'"
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests (deselect with '-m \"not integration\"')",
+]

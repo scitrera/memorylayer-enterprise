@@ -1,0 +1,47 @@
+-- Mirror of alembic migration 018_add_chat_thread_workspace_unique.py for the
+-- runtime _run_migrations() path. PostgreSQLBackend.connect() runs
+-- Base.metadata create_all (which only creates missing tables, never
+-- alters existing ones) followed by every *.sql file in this directory.
+-- Alembic exists in proprietary/memorylayer-enterprise/migrations/versions/
+-- but is NOT invoked at runtime — it's the production/ops-managed path.
+--
+-- For dev and any deployment that bootstraps via ``connect()``,
+-- schema-altering migrations need a SQL twin here so existing tables
+-- (created by an earlier create_all when the ORM didn't yet declare
+-- the constraint) get the new constraint without operator intervention.
+--
+-- Defense-in-depth enforcement of (workspace_id, id) uniqueness in
+-- chat_threads. Application code now routes user-scoped threads through
+-- the USER_CHAT_HOME_WORKSPACE sentinel ('_user_chat') so the previously
+-- ambiguous "_default" thread id is once again unique within its
+-- workspace partition. This constraint guarantees that even if a future
+-- code path bypasses the sentinel, the database refuses to create
+-- duplicate (workspace_id, id) tuples.
+--
+-- PRESUMES no existing collisions: legacy _default threads have
+-- distinct workspace_id values per the pre-redesign per-workspace
+-- ownership model, so the constraint is satisfiable on every deployed
+-- database. PostgreSQL 9.6+ supports IF NOT EXISTS on ADD CONSTRAINT
+-- via the DO block guard pattern (ADD CONSTRAINT itself does not).
+
+-- SUPERSEDED 2026-08-05 — NO-OP. Do not reinstate.
+--
+-- The presumption recorded above ("no existing collisions") was invalidated by
+-- the owner-scoped chat-thread redesign. Threads are now keyed
+-- (workspace_id, COALESCE(user_id,''), id): several owners legitimately share
+-- (workspace_id='_user_chat', id='_default'), so UNIQUE (workspace_id, id) is
+-- no longer a true statement about the data and can never be satisfied again.
+--
+-- Alembic 030_owner_scoped_chat_threads DROPs this constraint and replaces it
+-- with uq_chat_threads_ws_user_id. Because that DROP makes the IF NOT EXISTS
+-- guard below pass, this file re-attempted the ADD on EVERY startup, failed,
+-- and surfaced as:
+--     Error connecting storage backend 'postgresql':
+--     could not create unique index "uq_chat_threads_workspace_id"
+--     DETAIL: Key (workspace_id, id)=(_user_chat, _default) is duplicated.
+-- which failed the postgresql plugin's async_ready on each boot and read as a
+-- data-corruption incident when the data was in fact correct.
+--
+-- The constraint this file used to add now lives in alembic; this raw-SQL
+-- migration is retained only so the runner's applied-file bookkeeping is stable.
+SELECT 1;

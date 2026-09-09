@@ -1,0 +1,58 @@
+name: Build changed PostgreSQL image
+on:
+  workflow_call:
+    inputs:
+      plan:
+        required: true
+        type: string
+permissions:
+  contents: read
+  packages: write
+jobs:
+  amd64:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    outputs:
+      digest: ${{ steps.image.outputs.digest }}
+    steps:
+      - uses: actions/checkout@v7
+      - id: image
+        uses: ./.github/actions/build-postgres
+        with:
+          plan: ${{ inputs.plan }}
+          platform: linux/amd64
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+  arm64:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 45
+    outputs:
+      digest: ${{ steps.image.outputs.digest }}
+    steps:
+      - uses: actions/checkout@v7
+      - id: image
+        uses: ./.github/actions/build-postgres
+        with:
+          plan: ${{ inputs.plan }}
+          platform: linux/arm64
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+  merge:
+    needs: [amd64, arm64]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: astral-sh/setup-uv@v10.0.1
+      - name: Promote both platforms and record successful inputs
+        env:
+          PLAN: ${{ inputs.plan }}
+          AMD64: ${{ needs.amd64.outputs.digest }}
+          ARM64: ${{ needs.arm64.outputs.digest }}
+        run: |
+          uv run --no-project --with scitrera-repo-tools==0.1.29 python scripts/postgres_updates.py publish \
+            --plan "$PLAN" --amd64 "$AMD64" --arm64 "$ARM64"

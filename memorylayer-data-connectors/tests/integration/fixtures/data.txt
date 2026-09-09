@@ -1,0 +1,10 @@
+Integration Test Data File
+=========================
+
+This plain text file is a sanity check for the local_fs connector.
+It verifies that non-markdown files are also discovered, hashed,
+uploaded to the blob store, and processed through the ingestion pipeline.
+
+Line count: 8
+Character set: ASCII
+Content type: text/plain

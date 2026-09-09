@@ -1,0 +1,83 @@
+# Numbered container releases share the root vX.Y.Z tag. Package versions
+# remain tracked for source metadata; no Python/npm registry releases are made.
+memorylayer-extensions: 0.0.1
+memorylayer-enterprise: 0.0.1
+memorylayer-data-connectors: 0.0.1
+memorylayer-embed-server-enterprise: 0.0.1
+memorylayer-admin: 0.0.1
+project_rules:
+  memorylayer-extensions: []
+  memorylayer-enterprise:
+    - {type: pyproject, path: memorylayer-enterprise/pyproject.toml}
+  memorylayer-data-connectors:
+    - {type: pyproject, path: memorylayer-data-connectors/pyproject.toml}
+  memorylayer-embed-server-enterprise:
+    - {type: pyproject, path: memorylayer-embed-server-enterprise/pyproject.toml}
+  memorylayer-admin:
+    - {type: package, path: memorylayer-admin/package.json}
+ci:
+  repo_tools_source: scitrera-repo-tools==0.1.29
+  test_branches: [main]
+  push_branches: [main]
+  # Empty publish_projects means ALL in repo-tools. Instead explicitly manage
+  # only these workflows: no PyPI/npm publishing workflow is generated.
+  only_workflows: [version-check, test-python, test-npm, build-docker]
+  check_generated_ci: true
+  github_release: false
+  python:
+    test_versions: ['3.12']
+    test_projects: [memorylayer-enterprise, memorylayer-data-connectors]
+    lint: none
+    install: 'pip install -e ".[dev]"'
+    projects:
+      memorylayer-enterprise:
+        install: 'python "$GITHUB_WORKSPACE/scripts/dev.py" enterprise --python "$(command -v python)" --release'
+    test_command: 'python -m pytest tests/unit -q'
+    verify_tag_version: memorylayer-extensions
+    setup_steps:
+      - name: Verify source versions and release context
+        run: |
+          uvx --from scitrera-repo-tools==0.1.29 sync-versions --config "$GITHUB_WORKSPACE/versions.yaml" --check
+          uv run --no-project --with scitrera-repo-tools==0.1.29 python "$GITHUB_WORKSPACE/scripts/check_release.py"
+  npm:
+    node_version: '24'
+    test_projects: [memorylayer-admin]
+    lint: tsc-noemit
+    build: true
+    cache: true
+    setup_steps:
+      - name: Disable build telemetry
+        run: echo 'NEXT_TELEMETRY_DISABLED=1' >> "$GITHUB_ENV"
+  docker:
+    default_platforms: [linux/amd64, linux/arm64]
+    platform_runners:
+      linux/amd64: ubuntu-24.04
+      linux/arm64: ubuntu-24.04-arm
+    # Native publishing templates in 0.1.29 do not gate pushes on PRs.
+    # container-check.yml supplies a separate build-only PR lane.
+    build_on_pr: false
+    enable_workflow_dispatch_version: false
+    test_prereqs: [python]
+docker:
+  ghcr: scitrera
+  images:
+    memorylayer-enterprise:
+      context: .
+      dockerfile: docker/Dockerfile.enterprise
+      version_from: memorylayer-extensions
+      build_strategy: native
+    memorylayer-data-connectors:
+      context: .
+      dockerfile: docker/Dockerfile.data-connectors
+      version_from: memorylayer-extensions
+      build_strategy: native
+    memorylayer-postgres:
+      context: .
+      dockerfile: postgres-container/Dockerfile
+      version_from: memorylayer-extensions
+      build_strategy: native
+    memorylayer-postgres-cnpg:
+      context: .
+      dockerfile: postgres-container/Dockerfile.cnpg
+      version_from: memorylayer-extensions
+      build_strategy: native

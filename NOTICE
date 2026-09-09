@@ -1,0 +1,15 @@
+MemoryLayer Extensions
+Copyright (c) 2026 Scitrera.
+
+The Scitrera extensions are licensed under AGPL-3.0-only. This notice selects
+version 3 only, not the "or any later version" alternative illustrated in the
+license's application appendix. See LICENSE for the full license text.
+
+The separate MemoryLayer core, SDKs, and other Apache-2.0 dependencies retain
+their original licenses and notices. The MemoryLayer Storage Python client
+also retains Apache-2.0. Third-party components retain their own licenses.
+See THIRD_PARTY_NOTICES.md at the repository root for attribution information.
+
+This software is provided without warranty, to the extent permitted by law.
+
+Public source: https://github.com/scitrera/memorylayer-enterprise

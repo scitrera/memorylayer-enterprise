@@ -1,0 +1,58 @@
+name: Native container checks
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: container-check-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  automation:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.0.1
+      - run: uv run --no-project --with scitrera-repo-tools==0.1.29 python -m unittest discover -s tests/ci -v
+  build:
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-24.04, ubuntu-24.04-arm]
+        image:
+          - {name: enterprise, dockerfile: docker/Dockerfile.enterprise}
+          - {name: data-connectors, dockerfile: docker/Dockerfile.data-connectors}
+          - {name: postgres, dockerfile: postgres-container/Dockerfile}
+          - {name: postgres-cnpg, dockerfile: postgres-container/Dockerfile.cnpg}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/setup-buildx-action@v4
+      - name: Build on the native runner without registry writes
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.image.dockerfile }}
+          load: true
+          push: false
+          tags: local/${{ matrix.image.name }}:ci
+          cache-from: type=gha,scope=check-${{ matrix.image.name }}-${{ matrix.runner }}
+      - name: Exercise PostgreSQL extensions
+        if: startsWith(matrix.image.name, 'postgres')
+        env:
+          IMAGE: local/${{ matrix.image.name }}:ci
+        run: bash scripts/smoke-postgres.sh "$IMAGE"
+      - name: Validate connector startup and Python dependencies
+        if: matrix.image.name == 'data-connectors'
+        run: bash scripts/smoke-connectors.sh local/data-connectors:ci
+      - name: Validate enterprise CLI and migrations
+        if: matrix.image.name == 'enterprise'
+        run: |
+          docker run --rm --network none local/enterprise:ci --help
+          docker run --rm --network none --entrypoint python local/enterprise:ci -m pip check
+          docker run --rm --network none --entrypoint python local/enterprise:ci \
+            -c 'from memorylayer_saas.services.graph_analysis.age import AgeGraphAnalysisService'
+          docker run --rm --network none --entrypoint sh local/enterprise:ci \
+            -c 'test -s /app/alembic.ini && test -s /app/migrations/versions/036_deterministic_memory_storage.py'
