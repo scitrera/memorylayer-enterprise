@@ -89,3 +89,42 @@ def test_force_stamp_overrides_refusal():
 @pytest.mark.parametrize("db_was_empty", [True, False])
 def test_force_stamp_always_stamps_when_untracked(db_was_empty):
     assert decide(version_present=False, db_was_empty=db_was_empty, force_stamp=True) == "stamp"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("application_tables, expected_empty", [([], True), (["memories"], False)])
+async def test_bootstrap_ignores_extension_tables_on_search_path(monkeypatch, application_tables, expected_empty):
+    """AGE catalogs visible on search_path must not change the app migration decision."""
+    from types import SimpleNamespace
+    from unittest.mock import AsyncMock, MagicMock
+    import sqlalchemy
+    import memorylayer_saas.storage.postgresql as storage
+
+    sync_conn = SimpleNamespace(dialect=SimpleNamespace(default_schema_name="public"))
+    inspector = MagicMock()
+    inspector.get_table_names.side_effect = lambda schema=None: (
+        application_tables if schema == "public" else application_tables + ["ag_graph", "ag_label"]
+    )
+    monkeypatch.setattr(sqlalchemy, "inspect", lambda conn: inspector)
+
+    connection = MagicMock()
+
+    async def run_sync(fn):
+        return fn(sync_conn)
+
+    connection.run_sync = run_sync
+    engine = MagicMock()
+    engine.connect.return_value.__aenter__ = AsyncMock(return_value=connection)
+    engine.begin.return_value.__aenter__ = AsyncMock(return_value=connection)
+    monkeypatch.setattr(storage, "create_async_engine", lambda *args, **kwargs: engine)
+    monkeypatch.setattr(storage, "async_sessionmaker", MagicMock())
+    monkeypatch.setattr(storage, "PostgreSQLVersionedResourceStore", MagicMock())
+    monkeypatch.setattr(storage, "LeannStorage", MagicMock())
+    monkeypatch.setattr(storage.Base.metadata, "create_all", MagicMock())
+    monkeypatch.setenv("MEMORYLAYER_AUTO_MIGRATE", "1")
+
+    backend = storage.PostgreSQLBackend(connection_string="postgresql+asyncpg://fixture")
+    backend._apply_alembic_migrations = AsyncMock()
+    backend._run_migrations = AsyncMock()
+    await backend.connect()
+    backend._apply_alembic_migrations.assert_awaited_once_with(db_was_empty=expected_empty)
