@@ -208,7 +208,7 @@ class TestGenerateUploadUrl:
         assert str(mint_req.url).startswith(EDGE)
         assert str(staged_req.url).startswith(EDGE)
         # STAGE mint is not auth-bound.
-        assert "require_auth" not in json.loads(mint_req.content)
+        assert json.loads(mint_req.content)["require_auth"] is False
         # STAGE asserts the service-id subject (no per-request subject override):
         # uploads are bearer/no-require_auth, so no end user is bound.
         assert mint_req.headers.get("X-Scitrera-User") == SERVICE_ID
@@ -218,6 +218,29 @@ class TestGenerateUploadUrl:
 # ---------------------------------------------------------------------------
 # generate_download_url
 # ---------------------------------------------------------------------------
+
+@pytest.mark.asyncio
+async def test_upload_proxy_preserves_signed_path_and_query(backend):
+    backend.presigned_url = "https://s3.test/staging/a%2Fb?X-Amz-Signature=abc%2Fdef&x=1"
+    store = BlobgwBlobStore(
+        internal_url=INTERNAL, edge_url=EDGE, domain=DOMAIN,
+        upload_public_url="https://web.test/storage/alpha/uploads/",
+        upload_internal_url="http://transfer.test:8080/uploads/",
+        transport=httpx.MockTransport(backend.handler),
+    )
+    result = await store.generate_upload_url("k/obj")
+    assert result["url"] == "https://web.test/storage/alpha/uploads/staging/a%2Fb?X-Amz-Signature=abc%2Fdef&x=1"
+    assert result["internal_url"] == "http://transfer.test:8080/uploads/staging/a%2Fb?X-Amz-Signature=abc%2Fdef&x=1"
+    assert all(request.url.host == "edge.test" for request in backend.requests)
+
+
+@pytest.mark.parametrize("url", ["file:///tmp", "https://user:pw@web.test", "https://web.test/?token=x", "https://web.test/#x"])
+def test_upload_proxy_rejects_unsafe_configuration(url):
+    with pytest.raises(ValueError):
+        BlobgwBlobStore(internal_url=INTERNAL, edge_url=EDGE, domain=DOMAIN, upload_public_url=url)
+    with pytest.raises(ValueError):
+        BlobgwBlobStore(internal_url=INTERNAL, edge_url=EDGE, domain=DOMAIN, upload_internal_url=url)
+
 
 class TestGenerateDownloadUrl:
     async def test_default_public_url_uses_edge_base(self, store, backend):
@@ -260,8 +283,8 @@ class TestGenerateDownloadUrl:
         assert mint_req.url.path == "/capabilities"
         assert str(mint_req.url).startswith(EDGE)
 
-    async def test_require_auth_false_omits_field(self, backend):
-        """download_require_auth=False -> no require_auth in the mint body."""
+    async def test_require_auth_false_overrides_an_auth_bound_edge_default(self, backend):
+        """download_require_auth=False must be explicit, independent of the edge default."""
         s = BlobgwBlobStore(
             internal_url=INTERNAL, edge_url=EDGE, domain=DOMAIN, service_id=SERVICE_ID,
             public_url=PUBLIC, download_require_auth=False,
@@ -272,7 +295,7 @@ class TestGenerateDownloadUrl:
         await s.generate_download_url("ws1/doc.pdf")
         body = json.loads(backend.requests[0].content)
         assert body["op"] == "GET"
-        assert "require_auth" not in body
+        assert body["require_auth"] is False
 
     async def test_subject_binds_mint_and_auth_bound(self, store, backend):
         """A download with a subject asserts that user as X-Scitrera-User in the
@@ -321,7 +344,7 @@ class TestGenerateFetchUrl:
         assert str(mint_req.url).startswith(EDGE)
         body = json.loads(mint_req.content)
         assert body["op"] == "GET"
-        assert "require_auth" not in body
+        assert body["require_auth"] is False
         assert mint_req.headers.get("X-Scitrera-User") == SERVICE_ID
 
 
@@ -461,7 +484,8 @@ class TestFinalizeRouteUsesBlobgwPath:
     ``finalize_blob`` (the edge) and NEVER calls head_object/get_object.
     """
 
-    def test_finalize_backfills_from_edge_not_head_get(self, monkeypatch):
+    @pytest.mark.parametrize("commit_failure", [False, True])
+    def test_finalize_backfills_from_edge_not_head_get(self, monkeypatch, commit_failure):
         from unittest.mock import AsyncMock, patch
         from fastapi.testclient import TestClient
 
@@ -474,6 +498,8 @@ class TestFinalizeRouteUsesBlobgwPath:
         mock_blob.finalize_blob = AsyncMock(
             return_value={"size": 4096, "content_hash": "edgehash", "content_type": "application/pdf"}
         )
+        if commit_failure:
+            mock_blob.finalize_blob.side_effect = RuntimeError("storage unavailable")
         mock_blob.head_object = AsyncMock(side_effect=AssertionError("head_object must not be called"))
         mock_blob.get_object = AsyncMock(side_effect=AssertionError("get_object must not be called"))
         from datetime import datetime, timezone
@@ -514,6 +540,10 @@ class TestFinalizeRouteUsesBlobgwPath:
                         "visibility": "private",
                     })
 
+        if commit_failure:
+            assert resp.status_code == 503
+            assert resp.json()["detail"] == "Blob commit failed; retry finalization"
+            return
         assert resp.status_code == 200
         data = resp.json()
         assert data["content_hash"] == "edgehash"
@@ -587,3 +617,37 @@ class TestUrlMinterSubjectForwarding:
         await minter.mint_fetch_url("vfs::x", "ws1")
         assert blob.fetch_called is True
         assert blob.download_subject == "<unset>"  # download path untouched
+
+@pytest.mark.asyncio
+async def test_fetch_proxy_keeps_mint_private():
+    calls=[]
+    def handler(request):
+        calls.append((str(request.url),json.loads(request.content)))
+        return httpx.Response(200,json={"capability_url":"/blob/object?cap=synthetic"})
+    store=BlobgwBlobStore(internal_url="http://blobgw.test",edge_url=EDGE,domain="alpha",
+        fetch_base_url="http://downloads.test:8080",transport=httpx.MockTransport(handler))
+    url,headers,_=await store.generate_fetch_url("object")
+    assert url=="http://downloads.test:8080/blob/object?cap=synthetic"
+    assert calls[0][0]==EDGE+"/capabilities"
+    assert calls[0][1]["require_auth"] is False
+    assert headers=={}
+
+@pytest.mark.parametrize("url",["file:///tmp/x","http://u:p@edge.test","http://edge.test?key=x","http://edge.test#blob"])
+def test_invalid_fetch_proxy_fails_closed(url):
+    with pytest.raises(ValueError,match="fetch_base_url"):
+        BlobgwBlobStore(internal_url="http://blobgw.test",edge_url=EDGE,domain="alpha",fetch_base_url=url)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("override,expected", [
+    (None,"https://returned-edge.test/blob/object?cap=synthetic"),
+    ("http://downloads.test:8080","http://downloads.test:8080/blob/object?cap=synthetic"),
+])
+async def test_absolute_fetch_capability_preserves_legacy_or_uses_explicit_proxy(override,expected):
+    def handler(request):
+        return httpx.Response(200,json={"capability_url":"https://returned-edge.test/blob/object?cap=synthetic"})
+    store=BlobgwBlobStore(internal_url="http://blobgw.test",edge_url=EDGE,domain="alpha",
+        fetch_base_url=override,transport=httpx.MockTransport(handler))
+    url,headers,_=await store.generate_fetch_url("object")
+    assert url==expected
+    assert headers=={}

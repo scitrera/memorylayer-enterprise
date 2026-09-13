@@ -40,6 +40,8 @@ identity header; the internal gateway is addressed to the same domain via the
 """
 from __future__ import annotations
 
+from urllib.parse import urlsplit
+
 import asyncio
 import logging
 from datetime import datetime, timedelta, timezone
@@ -116,12 +118,31 @@ class BlobgwBlobStore:
         transport: Optional[httpx.AsyncBaseTransport] = None,
         public_url: Optional[str] = None,
         download_require_auth: bool = True,
+        upload_public_url: Optional[str] = None,
+        upload_internal_url: Optional[str] = None,
+        fetch_base_url: Optional[str] = None,
     ) -> None:
         self._internal_url = internal_url.rstrip("/")
         self._edge_url = edge_url.rstrip("/")
         # Browser-facing download base; defaults to the internal edge when unset
         # (SAFE/non-breaking). Only generate_download_url uses it.
         self._public_url = (public_url or edge_url).rstrip("/")
+        self._upload_public_url = (upload_public_url or "").rstrip("/")
+        if self._upload_public_url:
+            parsed = urlsplit(self._upload_public_url)
+            if parsed.scheme not in ("http", "https") or not parsed.netloc or parsed.username or parsed.password or parsed.query or parsed.fragment:
+                raise ValueError("upload_public_url must be an HTTP(S) reverse-proxy base without credentials, query or fragment")
+        self._upload_internal_url = (upload_internal_url or "").rstrip("/")
+        if self._upload_internal_url:
+            parsed = urlsplit(self._upload_internal_url)
+            if parsed.scheme not in ("http", "https") or not parsed.hostname or parsed.username is not None or parsed.password is not None or parsed.query or parsed.fragment:
+                raise ValueError("upload_internal_url must be an HTTP(S) proxy base without credentials, query or fragment")
+            _ = parsed.port
+        self._fetch_base_url = (fetch_base_url or "").rstrip("/")
+        parsed = urlsplit(self._fetch_base_url or self._edge_url)
+        if parsed.scheme not in ("http", "https") or not parsed.hostname or parsed.username is not None or parsed.password is not None or parsed.query or parsed.fragment:
+            raise ValueError("fetch_base_url must be an HTTP(S) endpoint without credentials, query or fragment")
+        _ = parsed.port
         self._download_require_auth = download_require_auth
         self._domain = domain
         self._service_id = service_id
@@ -223,11 +244,11 @@ class BlobgwBlobStore:
             body["content_hash"] = content_hash
         if ttl_seconds is not None:
             body["ttl_seconds"] = ttl_seconds
-        if require_auth:
-            # Auth-bind the capability. Do NOT send match_mode: the edge defaults
-            # mm=exact when require_auth is true (only the intended user), which
-            # is exactly what we want for the browser-facing download URL.
-            body["require_auth"] = True
+        # The edge may require auth by default. Internal fetch/stage/finalize
+        # calls deliberately use scoped bearer capabilities; make False explicit
+        # instead of inheriting an operator's browser-facing default. Browser
+        # downloads remain auth-bound, with the edge's exact-subject match mode.
+        body["require_auth"] = require_auth
 
         async with self._http() as http:
             resp = await http.post(
@@ -357,9 +378,25 @@ class BlobgwBlobStore:
         if content_type:
             headers["Content-Type"] = content_type
 
+        upload_url = staged["upload_url"]
+        if self._upload_public_url:
+            # The operator's proxy must restore the original S3 Host and remove
+            # only this prefix. Keep the signed path/query bytes unchanged.
+            signed = urlsplit(upload_url)
+            upload_url = self._upload_public_url + signed.path + ("?" + signed.query if signed.query else "")
+
+        # Sandboxed/server callers may need a separate operator-controlled
+        # route. Both URLs retain exactly the same presigned path and query;
+        # this does not mint additional authority or accept a caller-chosen host.
+        internal_url = None
+        if self._upload_internal_url:
+            signed = urlsplit(staged["upload_url"])
+            internal_url = self._upload_internal_url + signed.path + ("?" + signed.query if signed.query else "")
+
         return {
             "method": "PUT",
-            "url": staged["upload_url"],
+            "url": upload_url,
+            "internal_url": internal_url,
             "fields": {},
             "headers": headers,
             "expires_at": expires_at,
@@ -398,7 +435,10 @@ class BlobgwBlobStore:
         key: str,
         ttl_seconds: int = _DEFAULT_DOWNLOAD_TTL_S,
     ) -> tuple[str, dict[str, str], datetime]:
-        """Generate an INTERNAL, server-side GET URL via an edge capability.
+        """Generate a capability-protected GET URL for server-side fetchers.
+
+        fetch_base_url may name a restricted GET-only proxy, keeping the
+        edge capability-minting API unreachable from allocated sandboxes.
 
         Unlike :meth:`generate_download_url` (browser-facing: auth-bound and built
         from the PUBLIC ``storage2`` base), this is for IN-CLUSTER server-side
@@ -416,7 +456,15 @@ class BlobgwBlobStore:
         """
         ref = self._full_key(key)
         cap = await self._mint_capability("GET", ref, ttl_seconds=ttl_seconds, require_auth=False)
-        url = self._absolute(cap["capability_url"])
+        if self._fetch_base_url:
+            # The override replaces only the origin/base. Both relative and
+            # absolute capability responses retain their path and signed query.
+            parsed_cap = urlsplit(cap["capability_url"])
+            url = self._fetch_base_url + parsed_cap.path
+            if parsed_cap.query:
+                url += "?" + parsed_cap.query
+        else:
+            url = self._absolute(cap["capability_url"])
         expires_at = self._parse_expires_at(cap.get("expires_at"), ttl_seconds)
         return url, {}, expires_at
 
