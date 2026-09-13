@@ -226,6 +226,13 @@ class DocAddedTaskHandler(TaskHandlerPlugin):
                     vfs_ref, existing.id, exc_info=True,
                 )
 
+        # Every arriving VFS entry needs its own reverse link, even when the
+        # content hash resolves to a document with a different source_vfs_ref.
+        # Retry failed acknowledgements instead of reporting ingestion success.
+        await _link_vfs_entry(
+            v, vfs_ref, workspace_id, existing.id, "", logger, require_success=True,
+        )
+
         # In-flight protection: a fresh PROCESSING/PENDING* doc is owned by
         # another worker — NO-OP. Past the freshness TTL it is treated as
         # orphaned and re-driven via gap-fill below.
@@ -254,7 +261,7 @@ class DocAddedTaskHandler(TaskHandlerPlugin):
             # Re-emit ingest_complete in case the KB signal was lost.
             await _emit_event(v, workspace_id, "memorylayer.ingest_complete", {
                 "ml_doc_id": existing.id,
-                "vfs_ref": existing.source_vfs_ref or vfs_ref,
+                "vfs_ref": vfs_ref,
             }, logger)
             return
 
@@ -840,22 +847,25 @@ async def _link_vfs_entry(
     doc_id: str,
     job_id: str,
     logger,
+    *,
+    require_success: bool = False,
 ) -> None:
     """Link the VFS entry back to the ML document via data-connectors.
 
-    Best-effort; failure is logged but not raised.
+    Existing-document callers require acknowledgement before skipping ingestion.
+    Other callers retain best-effort behavior.
     """
     try:
         dc_topic = v.environ(DATA_CONNECTORS_TOPIC, DEFAULT_DATA_CONNECTORS_TOPIC)
         agent_service = get_extension(EXT_AETHER_SERVICE_CONNECTION, v)
         client = agent_service.client
 
-        link_body = json.dumps({
-            "ml_doc_id": doc_id,
-            "ml_job_id": job_id,
-        }).encode("utf-8")
+        link = {"ml_doc_id": doc_id}
+        if job_id:
+            link["ml_job_id"] = job_id
+        link_body = json.dumps(link).encode("utf-8")
 
-        await proxy_http_async(
+        response = await proxy_http_async(
             client,
             target_topic=dc_topic,
             method="POST",
@@ -871,7 +881,11 @@ async def _link_vfs_entry(
             ),
             timeout=10.0,
         )
-    except Exception:
+        if not 200 <= response.status_code < 300:
+            raise ConnectionError("VFS link was not acknowledged: HTTP %s" % response.status_code)
+    except Exception as exc:
+        if require_success:
+            raise ConnectionError("VFS document link is unconfirmed") from exc
         logger.warning(
             "Failed to link VFS entry %s to document %s (best-effort)",
             vfs_ref, doc_id, exc_info=True,
