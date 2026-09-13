@@ -20,6 +20,11 @@ environment. Two backends exist:
   ``DC_BLOBGW_DOWNLOAD_REQUIRE_AUTH`` Auth-bind download URLs (default true)
   ``DC_BLOBGW_DOMAIN``         Per-tenant domain / asserted tenant id
   ``DC_BLOBGW_SERVICE_ID``     dc service subject id (identity assertion)
+  ``DC_BLOBGW_UPLOAD_PUBLIC_URL`` Optional browser-facing upload proxy base.
+  ``DC_BLOBGW_UPLOAD_INTERNAL_URL`` Optional worker-facing upload proxy base.
+  ``DC_BLOBGW_FETCH_BASE_URL`` Optional download proxy base; capability minting
+    continues to use the private edge. Proxy bases preserve the signed path/query
+    and must be HTTP(S) URLs without credentials, query strings or fragments.
   ``DC_BLOBGW_UPLOAD_TTL_S``   Upload capability/presign TTL (default 3600)
   ``DC_BLOBGW_DOWNLOAD_TTL_S`` Download capability/presign TTL (default 3600)
   ``DC_BLOB_PREFIX``           Optional ref prefix (shared with the S3 backend)
@@ -133,6 +138,9 @@ def create_blob_store():
             upload_ttl_s=upload_ttl,
             download_ttl_s=download_ttl,
             public_url=public_url,
+            fetch_base_url=os.environ.get("DC_BLOBGW_FETCH_BASE_URL", "").strip() or None,
+            upload_public_url=os.environ.get("DC_BLOBGW_UPLOAD_PUBLIC_URL", "").strip() or None,
+            upload_internal_url=os.environ.get("DC_BLOBGW_UPLOAD_INTERNAL_URL", "").strip() or None,
             download_require_auth=download_require_auth,
         )
 

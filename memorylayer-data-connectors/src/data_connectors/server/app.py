@@ -682,6 +682,7 @@ async def mint_upload_url(request: MintUploadURLReq, http_request: Request) -> U
     return UploadURLResponse(
         method=result["method"],
         upload_url=result["url"],
+        upload_internal_url=result.get("internal_url"),
         blob_key=result["blob_key"],
         vfs_ref=result.get("vfs_ref"),
         fields=result.get("fields", {}),
@@ -868,9 +869,13 @@ async def finalize_vfs_entry(vfs_ref: str, request: FinalizeVfsEntryReq, http_re
             except Exception:
                 logger.warning(
                     "blobgw finalize failed for vfs_ref=%s (blob_key=%s); "
-                    "finalizing with available values",
+                    "leaving the placeholder pending for retry",
                     vfs_ref, entry.blob_key, exc_info=True,
                 )
+                raise HTTPException(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    detail="Blob commit failed; retry finalization",
+                ) from None
         elif content_hash is None or size_bytes is None:
             try:
                 if size_bytes is None:
