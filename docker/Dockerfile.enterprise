@@ -34,7 +34,8 @@ ARG BLOBGW_CLIENT_REF=clients/python/v0.7.1
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip install \
         "blobgw-client @ git+https://github.com/scitrera/memorylayer-storage.git@${BLOBGW_CLIENT_REF}#subdirectory=clients/python" && \
-    pip check
+    pip check && \
+    python -c "from openai import AsyncOpenAI; import tiktoken"
 
 # Refuse an SDK incapable of carrying checked VFS authorization receipts.
 RUN python -c 'from scitrera_aether_client.proto import aether_pb2; assert hasattr(aether_pb2, "ResourceAccessRequest"); assert {"checked_access", "access_receipt"} <= {f.name for f in aether_pb2.ProxyHttpRequest.DESCRIPTOR.fields}'
