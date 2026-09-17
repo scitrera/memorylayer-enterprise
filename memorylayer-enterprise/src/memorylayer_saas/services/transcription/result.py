@@ -26,7 +26,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from .regions import PageRegion
+from .regions import PageRegion, extract_grounded_page
 
 
 @dataclass(frozen=True)
@@ -39,8 +39,8 @@ class TranscribedPage:
     the first batch.
 
     ``regions`` is the page's layout segmentation when the provider produced one
-    (grounded OCR models do; the embed-server path does not, since that server
-    returns already-flattened text). It is retained so callers can act on
+    (grounded OCR models do, including embed-server responses carrying
+    a raw transcript and output contract). It is retained so callers can act on
     structure the transcript cannot carry -- most importantly the figure boxes,
     which are the only handle on illustrations the model emits no text for.
     """
@@ -81,13 +81,18 @@ def pages_from_embed_server_response(result: dict) -> list[TranscribedPage]:
             continue
         index = entry.get("page_index")
         content = entry.get("content")
-        if not isinstance(index, int) or not content:
+        regions = []
+        raw = entry.get("raw_content")
+        if entry.get("output_contract") in {"unlimited_ocr", "deepseek_ocr"} and isinstance(raw, str):
+            content, regions = extract_grounded_page(raw)
+        if not isinstance(index, int) or isinstance(index, bool) or index < 0 or not isinstance(content, str) or not content:
             continue
         pages.append(
             TranscribedPage(
                 request_index=index,
                 content=content,
                 model=entry.get("model_used"),
+                regions=tuple(regions),
             )
         )
     return pages

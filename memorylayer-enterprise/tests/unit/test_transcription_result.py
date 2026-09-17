@@ -115,3 +115,24 @@ def test_absent_or_null_results_key_is_empty_not_an_error():
 def test_missing_model_used_is_none_not_a_keyerror():
     entry = {"page_index": 0, "content": "text", "success": True}
     assert pages_from_embed_server_response({"results": [entry]})[0].model is None
+
+
+def test_embed_server_raw_layout_retains_table_and_figure_only_page():
+    response = _response(
+        {**_page(0, "flattened"), "output_contract": "unlimited_ocr",
+         "raw_content": "<|det|>table [10, 20, 500, 600]<|/det|><table><tr><td>125</td></tr></table>"},
+        {**_page(1, ""), "output_contract": "unlimited_ocr",
+         "raw_content": "<|det|>image [10, 20, 500, 600]<|/det|>"},
+    )
+    pages = pages_from_embed_server_response(response)
+    assert [p.request_index for p in pages] == [0, 1]
+    assert "<table>" in pages[0].content and pages[0].regions
+    assert pages[1].figures and "figure" in pages[1].content.lower()
+
+
+def test_deepseek_grounded_layout_uses_the_same_region_contract():
+    raw = "<|ref|>Invoice total 125<|/ref|><|det|>[[10,20,500,600]]<|/det|>"
+    pages = pages_from_embed_server_response(_response({**_page(0, "flattened"),
+        "output_contract": "deepseek_ocr", "raw_content": raw, "model_used": "deepseek-ai/DeepSeek-OCR-2"}))
+    assert len(pages) == 1 and pages[0].regions
+    assert "125" in pages[0].content and pages[0].model == "deepseek-ai/DeepSeek-OCR-2"
