@@ -466,6 +466,9 @@ class DocumentIngestionService:
                 except Exception as exc:
                     self.logger.warning("Failed to delete memory %s: %s", mem_id, exc)
 
+        from .source_files import delete_document_files
+        await delete_document_files(self._v, doc.tenant_id, doc.workspace_id, doc.id)
+
         blob_prefix = self._blob.document_path(doc.workspace_id, doc.id, "")
         # Strip the trailing empty filename to get the directory
         blob_prefix = blob_prefix.rstrip("/")
