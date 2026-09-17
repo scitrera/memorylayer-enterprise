@@ -1,4 +1,4 @@
-"""Source file authorization and descriptor-only HTTP export contract."""
+"""Canonical HTTP file capabilities: authorization, scope and integrity."""
 
 import hashlib
 import io
@@ -6,7 +6,6 @@ import json
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import httpx
 import pytest
 from fastapi import HTTPException
 from PIL import Image
@@ -18,9 +17,8 @@ class Variables:
     def __init__(self, configured=True):
         self.values = (
             {
-                "MEMORYLAYER_SOURCE_FILES_BLOB_URL": "http://blob.test",
-                "MEMORYLAYER_SOURCE_FILES_EDGE_URL": "http://edge.test",
                 "MEMORYLAYER_SOURCE_FILES_FETCH_URL": "http://download.test",
+                "MEMORYLAYER_TENANT_ID": "jgl",
             }
             if configured
             else {}
@@ -32,53 +30,116 @@ class Variables:
 
 def page():
     return SimpleNamespace(
-        id="page", document_id="doc", workspace_id="owned", image_storage_path="image.png", transcript="Full transcript café"
+        id="page",
+        document_id="doc",
+        workspace_id="owned",
+        image_storage_path="image.png",
+        transcript="Full transcript café",
     )
+
+
+def token(descriptor):
+    return descriptor["url"].rsplit("/", 1)[1]
 
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("kind", ["image", "transcript"])
-async def test_export_bytes_use_http_and_control_reply_is_small(kind):
+async def test_capability_serves_canonical_bytes_and_small_descriptor(kind):
     out = io.BytesIO()
     Image.new("RGB", (1000, 500), "white").save(out, format="PNG")
     data = out.getvalue() if kind == "image" else page().transcript.encode()
-    requests = []
-
-    def send(request):
-        requests.append(request)
-        if request.method == "PUT":
-            assert request.content == data
-            assert request.headers["X-Blobgw-Domain"] == "jgl"
-            return httpx.Response(200, json={})
-        assert request.headers["X-Auth-Tenant-ID"] == "jgl"
-        body = json.loads(request.content)
-        assert body["op"] == "GET" and body["ttl_seconds"] == 120
-        return httpx.Response(200, json={"capability_url": "/blob/ref?cap=secret", "expires_at": "2099-01-01T00:00:00Z"})
-
-    client = httpx.AsyncClient(transport=httpx.MockTransport(send))
-    with patch.object(source_files.httpx, "AsyncClient", return_value=client):
-        result = await source_files.export_page(
-            Variables(), SimpleNamespace(tenant_id="jgl"), page(), AsyncMock(retrieve_file=AsyncMock(return_value=data)), kind
-        )
-    assert len(requests) == 2
+    blob = SimpleNamespace(retrieve_file=AsyncMock(return_value=data))
+    storage = SimpleNamespace(get_page=AsyncMock(return_value=page()))
+    result = await source_files.export_page(Variables(), SimpleNamespace(tenant_id="jgl"), page(), blob, kind)
     assert result["sha256"] == hashlib.sha256(data).hexdigest()
     assert result["size_bytes"] == len(data)
-    assert result["url"] == "http://download.test/blob/ref?cap=secret"
-    assert len(json.dumps(result)) < 1024
+    assert result["url"].startswith("http://download.test/blob/source-pages/jgl/")
+    assert len(json.dumps(result)) < 1600
     assert "data_base64" not in result
+    actual, mime = await source_files.redeem_page(Variables(), token(result), storage, blob)
+    assert actual == data and mime == result["mime"]
+    storage.get_page.assert_awaited_once_with("page")
 
 
 @pytest.mark.asyncio
-async def test_export_requires_configuration_and_bounded_valid_image():
-    blob = AsyncMock(retrieve_file=AsyncMock(return_value=b"not an image"))
-    for variables, status in [(Variables(False), 503), (Variables(), 422)]:
+@pytest.mark.parametrize("change", ["signature", "expired", "restart", "tenant", "workspace", "document", "deleted", "content"])
+async def test_stale_tampered_or_foreign_capability_fails_closed(change):
+    variables = Variables()
+    stored = page()
+    blob = AsyncMock()
+    storage = SimpleNamespace(get_page=AsyncMock(return_value=stored))
+    descriptor = await source_files.export_page(variables, SimpleNamespace(tenant_id="jgl"), stored, blob, "transcript")
+    ticket = token(descriptor)
+    if change == "signature":
+        ticket = ticket[:-1] + ("0" if ticket[-1] != "0" else "1")
+    if change == "restart":
+        variables.values["MEMORYLAYER_SOURCE_FILES_SIGNING_KEY"] = "new-key" * 8
+    if change == "tenant":
+        variables.values["MEMORYLAYER_TENANT_ID"] = "other"
+    if change == "workspace":
+        stored.workspace_id = "other"
+    if change == "document":
+        stored.document_id = "other"
+    if change == "deleted":
+        storage.get_page.return_value = None
+    if change == "content":
+        stored.transcript = "changed"
+    now = source_files.time.time() + (source_files.CAP_TTL + 1 if change == "expired" else 0)
+    with patch.object(source_files.time, "time", return_value=now), pytest.raises(HTTPException) as exc:
+        await source_files.redeem_page(variables, ticket, storage, blob)
+    assert exc.value.status_code == 404
+    if change in {"signature", "expired", "restart", "tenant"}:
+        storage.get_page.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("ticket", ["", "x" * 2049, "a.b.c", "nonsigned", "x." + "0" * 64])
+async def test_invalid_tickets_do_not_touch_storage(ticket):
+    storage = AsyncMock()
+    with pytest.raises(HTTPException) as exc:
+        await source_files.redeem_page(Variables(), ticket, storage, AsyncMock())
+    assert exc.value.status_code == 404
+    storage.get_page.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_mint_requires_configuration_tenant_and_bounded_valid_content():
+    blob = SimpleNamespace(retrieve_file=AsyncMock(return_value=b"not an image"))
+    for variables, tenant, kind, status in [
+        (Variables(False), "jgl", "image", 503),
+        (Variables(), "other", "transcript", 403),
+        (Variables(), "jgl", "image", 422),
+        (Variables(), "jgl", "unknown", 422),
+    ]:
         with pytest.raises(HTTPException) as exc:
-            await source_files.export_page(variables, SimpleNamespace(tenant_id="jgl"), page(), blob, "image")
+            await source_files.export_page(variables, SimpleNamespace(tenant_id=tenant), page(), blob, kind)
         assert exc.value.status_code == status
     blob.retrieve_file.return_value = b"x" * (source_files.MAX_IMAGE_BYTES + 1)
     with pytest.raises(HTTPException) as exc:
         await source_files.export_page(Variables(), SimpleNamespace(tenant_id="jgl"), page(), blob, "image")
     assert exc.value.status_code == 422
+    variables = Variables()
+    variables.values["MEMORYLAYER_SOURCE_FILES_SIGNING_KEY"] = "short"
+    with pytest.raises(HTTPException) as exc:
+        await source_files.export_page(variables, SimpleNamespace(tenant_id="jgl"), page(), blob, "transcript")
+    assert exc.value.status_code == 503
+
+
+@pytest.mark.asyncio
+async def test_download_uses_header_credentials_and_no_store():
+    from memorylayer_saas.api.v1 import documents
+
+    request = MagicMock(headers={"Authorization": "Bearer private-ticket"})
+    redeem = AsyncMock(return_value=(b"source", "text/plain"))
+    with patch.object(documents, "get_extension"), patch.object(source_files, "redeem_page", redeem):
+        response = await documents.download_source_file(request, Variables())
+        assert response.body == b"source"
+        assert response.headers["cache-control"] == "private, no-store"
+        assert redeem.call_args.args[1] == "private-ticket"
+        request.headers = {}
+        with pytest.raises(HTTPException) as exc:
+            await documents.download_source_file(request, Variables())
+        assert exc.value.status_code == 404
 
 
 @pytest.mark.asyncio
@@ -107,18 +168,3 @@ async def test_endpoint_authorizes_owning_workspace_before_export(denied, wrong_
             export.assert_awaited_once()
     if not wrong_doc:
         authz.require_authorization.assert_awaited_once_with(ctx, "documents", "read", workspace_id="owned")
-
-
-@pytest.mark.asyncio
-async def test_delete_exports_is_scoped_and_optional():
-    await source_files.delete_document_files(Variables(False), "jgl", "workspace", "doc")
-
-    def send(request):
-        assert request.method == "DELETE"
-        assert request.headers["X-Blobgw-Domain"] == "jgl"
-        assert request.url.params["prefix"] == source_files.document_prefix("workspace", "doc")
-        return httpx.Response(200, json={})
-
-    client = httpx.AsyncClient(transport=httpx.MockTransport(send))
-    with patch.object(source_files.httpx, "AsyncClient", return_value=client):
-        await source_files.delete_document_files(Variables(), "jgl", "workspace", "doc")

@@ -1,50 +1,60 @@
 # SPDX-License-Identifier: AGPL-3.0-only
-"""Export canonical page files to the existing HTTP storage data plane.
+"""Short-lived capabilities for canonical page bytes on the HTTP data plane.
 
-Callers must authorize the owning workspace before calling this module. Returned
-capabilities are short lived, secret transport metadata, never model text. The
-export is a derived document file (not a VFS entry or a new ingestion job).
+The minting endpoint must authorize the owning workspace. Consumers revalidate
+live task authority before exposing downloaded/cached files. No source copies
+are written to another storage domain; canonical deletion/re-ingestion applies.
 """
 
 from __future__ import annotations
 
+import base64
 import hashlib
+import hmac
 import io
-from urllib.parse import quote, urlsplit
+import json
+import re
+import secrets
+import time
+from datetime import UTC, datetime
+from urllib.parse import urlsplit
 
-import httpx
 from fastapi import HTTPException
 from PIL import Image
 
 MAX_IMAGE_BYTES = 5 * 1024 * 1024
 MAX_TEXT_BYTES = 20 * 1024 * 1024
 CAP_TTL = 120
+_PROCESS_KEY = secrets.token_bytes(32)
 
 
-def _digest(value: str) -> str:
-    return hashlib.sha256(value.encode()).hexdigest()
+def _key(v):
+    configured = v.environ("MEMORYLAYER_SOURCE_FILES_SIGNING_KEY", default="")
+    if not configured:
+        # A restart invalidates outstanding tickets. Replicas may share an
+        # operator-provided key; never persist or log the process fallback.
+        return _PROCESS_KEY
+    if not isinstance(configured, str) or len(configured.encode()) < 32:
+        raise HTTPException(503, "Source file signing key must contain at least 32 bytes")
+    return configured.encode()
 
 
-def document_prefix(workspace: str, document: str) -> str:
-    return f"source-files/{_digest(workspace)}/{_digest(document)}/"
+def _tenant(v):
+    tenant = v.environ("MEMORYLAYER_TENANT_ID", default="")
+    if not isinstance(tenant, str) or not re.fullmatch(r"[a-z0-9][a-z0-9-]{0,62}", tenant):
+        raise HTTPException(503, "Source file tenant is not configured correctly")
+    return tenant
 
 
-def settings(v):
-    keys = ("MEMORYLAYER_SOURCE_FILES_BLOB_URL", "MEMORYLAYER_SOURCE_FILES_EDGE_URL", "MEMORYLAYER_SOURCE_FILES_FETCH_URL")
-    values = tuple(str(v.environ(k, default="") or "").rstrip("/") for k in keys)
-    if not all(values):
-        raise HTTPException(503, "Source file downloads are not configured")
-    for value in values:
-        url = urlsplit(value)
-        if url.scheme not in ("http", "https") or not url.hostname or url.username or url.password or url.query or url.fragment:
-            raise HTTPException(503, "Invalid source file download configuration")
-    return values
+def _fetch_base(v):
+    value = str(v.environ("MEMORYLAYER_SOURCE_FILES_FETCH_URL", default="") or "").rstrip("/")
+    url = urlsplit(value)
+    if url.scheme not in ("http", "https") or not url.hostname or url.username or url.password or url.query or url.fragment:
+        raise HTTPException(503, "Source file downloads are not configured correctly")
+    return value
 
 
-async def export_page(v, ctx, page, blob_service, kind: str) -> dict:
-    blob_url, edge_url, fetch_url = settings(v)
-    if not ctx.tenant_id or not page.workspace_id:
-        raise HTTPException(403, "Source file scope required")
+async def _page_data(page, blob_service, kind):
     if kind == "image":
         if not page.image_storage_path:
             raise HTTPException(404, "Page image unavailable")
@@ -66,26 +76,29 @@ async def export_page(v, ctx, page, blob_service, kind: str) -> dict:
         mime = "text/plain; charset=utf-8"
     else:
         raise HTTPException(422, "Unsupported source file kind")
+    return data, mime
+
+
+async def export_page(v, ctx, page, blob_service, kind: str) -> dict:
+    fetch_url = _fetch_base(v)
+    if ctx.tenant_id != _tenant(v) or not page.workspace_id:
+        raise HTTPException(403, "Source file tenant/workspace scope required")
+    data, mime = await _page_data(page, blob_service, kind)
     digest = hashlib.sha256(data).hexdigest()
-    # One stable ref per document/page/kind. Re-ingestion replaces the ref;
-    # consumers still reject any bytes that do not match their snapshot/hash.
-    ref = document_prefix(page.workspace_id, page.document_id) + _digest(page.id) + "/" + kind
-    async with httpx.AsyncClient(timeout=30, follow_redirects=False, trust_env=False) as client:
-        response = await client.put(
-            blob_url + "/v1/objects/" + quote(ref, safe="/"), headers={"X-Blobgw-Domain": ctx.tenant_id, "Content-Type": mime}, content=data
-        )
-        response.raise_for_status()
-        response = await client.post(
-            edge_url + "/capabilities",
-            headers={"X-Auth-Tenant-ID": ctx.tenant_id, "X-Scitrera-User": "memorylayer"},
-            json={"op": "GET", "ref": ref, "ttl_seconds": CAP_TTL, "require_auth": False},
-        )
-        response.raise_for_status()
-        cap = response.json()
-    parsed = urlsplit(cap["capability_url"])
-    # Retain only the storage server's path/query, never a supplied origin.
-    if not parsed.path.startswith("/") or parsed.fragment:
-        raise HTTPException(502, "Invalid storage capability")
+    expires = int(time.time()) + CAP_TTL
+    claims = {
+        "v": 1,
+        "tenant": ctx.tenant_id,
+        "workspace": page.workspace_id,
+        "document": page.document_id,
+        "page": page.id,
+        "kind": kind,
+        "sha256": digest,
+        "size": len(data),
+        "expires": expires,
+    }
+    payload = base64.urlsafe_b64encode(json.dumps(claims, separators=(",", ":"), sort_keys=True).encode()).rstrip(b"=")
+    token = payload.decode() + "." + hmac.new(_key(v), payload, hashlib.sha256).hexdigest()
     return {
         "version": 1,
         "document_id": page.document_id,
@@ -94,21 +107,30 @@ async def export_page(v, ctx, page, blob_service, kind: str) -> dict:
         "mime": mime,
         "size_bytes": len(data),
         "sha256": digest,
-        "url": fetch_url + parsed.path + "?" + parsed.query,
-        "expires_at": cap["expires_at"],
+        "url": fetch_url + "/blob/source-pages/" + ctx.tenant_id + "/" + token,
+        "expires_at": datetime.fromtimestamp(expires, UTC).isoformat(),
     }
 
 
-async def delete_document_files(v, tenant: str, workspace: str, document: str) -> None:
-    """Remove derived HTTP exports before deleting the canonical document."""
-    configured = v.environ("MEMORYLAYER_SOURCE_FILES_BLOB_URL", default="")
-    if not isinstance(configured, str) or not configured:
-        return
-    blob_url, _, _ = settings(v)
-    if not tenant or not workspace or not document:
-        raise ValueError("Source export deletion requires tenant/workspace/document")
-    async with httpx.AsyncClient(timeout=30, follow_redirects=False, trust_env=False) as client:
-        response = await client.delete(
-            blob_url + "/v1/objects", headers={"X-Blobgw-Domain": tenant}, params={"prefix": document_prefix(workspace, document)}
-        )
-        response.raise_for_status()
+async def redeem_page(v, token: str, storage, blob_service):
+    """Serve exactly the current canonical page named by an unexpired ticket."""
+    try:
+        if not isinstance(token, str) or len(token) > 2048:
+            raise ValueError("invalid ticket size")
+        payload, signature = token.split(".")
+        if not hmac.compare_digest(signature, hmac.new(_key(v), payload.encode(), hashlib.sha256).hexdigest()):
+            raise ValueError("invalid signature")
+        claims = json.loads(base64.urlsafe_b64decode(payload + "=" * (-len(payload) % 4)))
+        if claims["v"] != 1 or claims["tenant"] != _tenant(v) or not time.time() < claims["expires"] <= time.time() + CAP_TTL:
+            raise ValueError("expired ticket")
+        page = await storage.get_page(claims["page"])
+        if not page or page.document_id != claims["document"] or page.workspace_id != claims["workspace"]:
+            raise ValueError("page no longer available")
+        data, mime = await _page_data(page, blob_service, claims["kind"])
+        if len(data) != claims["size"] or hashlib.sha256(data).hexdigest() != claims["sha256"]:
+            raise ValueError("page changed")
+    except HTTPException:
+        raise
+    except (ValueError, KeyError, TypeError):
+        raise HTTPException(404, "Source file unavailable") from None
+    return data, mime

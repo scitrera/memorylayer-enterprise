@@ -1217,6 +1217,25 @@ async def get_document_page(
         )
 
 
+@router.get("/source-files/download")
+async def download_source_file(
+    http_request: Request,
+    v: Variables = Depends(get_variables_dep),
+):
+    """Capability-only data plane; credentials stay out of upstream URLs/logs."""
+    from fastapi.responses import Response
+    from ...services.document.source_files import redeem_page
+
+    authorization = http_request.headers.get("Authorization", "")
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(404, "Source file unavailable")
+    data, mime = await redeem_page(
+        v, authorization[7:], get_extension(EXT_STORAGE_BACKEND, v),
+        get_extension(EXT_BLOB_STORAGE_SERVICE, v),
+    )
+    return Response(data, media_type=mime, headers={"Cache-Control": "private, no-store"})
+
+
 class SourceFileRequest(BaseModel):
     kind: str = Field(pattern="^(image|transcript)$")
 
