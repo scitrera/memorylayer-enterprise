@@ -1217,6 +1217,57 @@ async def get_document_page(
         )
 
 
+@router.get("/source-files/download")
+async def download_source_file(
+    http_request: Request,
+    v: Variables = Depends(get_variables_dep),
+):
+    """Capability-only data plane; credentials stay out of upstream URLs/logs."""
+    from fastapi.responses import Response
+    from ...services.document.source_files import redeem_page
+
+    authorization = http_request.headers.get("Authorization", "")
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(404, "Source file unavailable")
+    data, mime = await redeem_page(
+        v, authorization[7:], get_extension(EXT_STORAGE_BACKEND, v),
+        get_extension(EXT_BLOB_STORAGE_SERVICE, v),
+    )
+    return Response(data, media_type=mime, headers={"Cache-Control": "private, no-store"})
+
+
+class SourceFileRequest(BaseModel):
+    kind: str = Field(pattern="^(image|transcript)$")
+
+
+@router.post("/{document_id}/pages/{page_id}/file")
+async def materialize_page_file(
+    http_request: Request,
+    document_id: str,
+    page_id: str,
+    body: SourceFileRequest,
+    auth_service: AuthenticationService = Depends(get_auth_service),
+    authz_service: AuthorizationService = Depends(get_authz_service),
+    v: Variables = Depends(get_variables_dep),
+):
+    """Authorize and mint a small descriptor; source bytes bypass Aether."""
+    from ...services.document.source_files import export_page
+    try:
+        ctx = await auth_service.build_context(http_request)
+    except AuthenticationError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+    storage = get_extension(EXT_STORAGE_BACKEND, v)
+    page = await storage.get_page(page_id)
+    if not page or page.document_id != document_id:
+        raise HTTPException(404, "Page not found")
+    try:
+        await authz_service.require_authorization(ctx, "documents", "read", workspace_id=page.workspace_id)
+    except HTTPException:
+        raise HTTPException(404, "Page not found") from None
+    blob = get_extension(EXT_BLOB_STORAGE_SERVICE, v)
+    return await export_page(v, ctx, page, blob, body.kind)
+
+
 @router.get(
     "/{document_id}/pages/{page_id}/image",
     responses={

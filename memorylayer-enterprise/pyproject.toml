@@ -20,7 +20,8 @@ classifiers = [
 
 dependencies = [
     # scripts/dev.py installs both from one Git revision or local checkout.
-    "memorylayer-server>=0.2.0",
+    # The default LLM provider and SparkRoute gateway use the OpenAI-compatible client.
+    "memorylayer-server[openai]>=0.2.0",
     "memorylayer-server-rpg>=0.2.0",
     "asyncpg>=0.29.0",
     "pgvector>=0.2.4",

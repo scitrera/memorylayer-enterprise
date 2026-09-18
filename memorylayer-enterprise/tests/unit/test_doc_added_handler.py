@@ -733,3 +733,34 @@ class TestDocAddedProgress:
         agent_svc.client.report_progress.assert_not_called()
         # Ingestion is unaffected.
         ingestion_svc.store_upload_blob.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_identical_reupload_links_new_vfs_without_reingesting(mock_variables):
+    storage = _make_mock_storage()
+    existing = _make_existing_doc(status=DocumentStatus.COMPLETED, page_count=1, source_vfs_ref="vfs_original")
+    storage.find_document_by_hash.return_value = existing
+    storage.get_pages.return_value = [_make_complete_page("page_a")]
+    storage.get_memory_source_page_ids.return_value = {"page_a"}
+    task_service = _make_mock_task_service()
+    with patch_doc_added(storage=storage, task_service=task_service) as (_, _, agent, proxy, _):
+        await DocAddedTaskHandler().handle(mock_variables, DOC_ADDED_PAYLOAD)
+    links = [c for c in proxy.call_args_list if c.kwargs["path"].endswith("/link")]
+    assert len(links) == 1
+    assert links[0].kwargs["path"] == "/v1/vfs/entries/vfs_abc123/link"
+    assert json.loads(links[0].kwargs["body"]) == {"ml_doc_id": existing.id}
+    assert links[0].kwargs["app_workspace"] == "ws_test"
+    assert existing.source_vfs_ref == "vfs_original"
+    task_service.schedule_task.assert_not_called()
+    event = json.loads(agent.client.send_event.call_args.args[0])
+    assert event["data"]["vfs_ref"] == "vfs_abc123"
+
+
+@pytest.mark.asyncio
+async def test_existing_document_link_failure_is_retryable(mock_variables):
+    storage = _make_mock_storage()
+    storage.find_document_by_hash.return_value = _make_existing_doc(status=DocumentStatus.COMPLETED)
+    with patch_doc_added(storage=storage, proxy_response=_make_proxy_response(503)) as (_, _, agent, _, _):
+        with pytest.raises(ConnectionError, match="link is unconfirmed"):
+            await DocAddedTaskHandler().handle(mock_variables, DOC_ADDED_PAYLOAD)
+    agent.client.send_event.assert_not_called()

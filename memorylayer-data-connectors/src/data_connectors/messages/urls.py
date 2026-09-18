@@ -49,6 +49,7 @@ class UploadURLResponse(BaseModel):
     """
     method: Literal["POST", "PUT"] = Field("POST", description="Upload protocol used")
     upload_url: str = Field(..., description="Presigned upload URL")
+    upload_internal_url: Optional[str] = Field(None, description="Optional operator-configured proxy URL for sandbox/server uploads; same signed operation")
     blob_key: str = Field(..., description="Blob storage key")
     vfs_ref: Optional[str] = Field(None, description="Pre-allocated VFS reference (if applicable)")
     fields: dict[str, str] = Field(

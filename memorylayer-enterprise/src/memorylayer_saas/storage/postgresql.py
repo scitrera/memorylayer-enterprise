@@ -335,7 +335,9 @@ class PostgreSQLBackend(ColdTierStorageBackend):
         # hide schema drift (the "column ... does not exist" trap).
         from sqlalchemy import inspect as sa_inspect
         async with self._engine.connect() as conn:
-            pre_tables = await conn.run_sync(lambda c: sa_inspect(c).get_table_names())
+            pre_tables = await conn.run_sync(lambda c: sa_inspect(c).get_table_names(schema=c.dialect.default_schema_name))
+        # Restrict reflection to the schema receiving unqualified application DDL.
+        # AGE catalogs elsewhere on search_path are visible but are not app tables.
         db_was_empty = not [t for t in pre_tables if t != "alembic_version"]
 
         async def _create_all() -> None:
@@ -517,7 +519,7 @@ class PostgreSQLBackend(ColdTierStorageBackend):
             """Return True iff alembic_version table exists and has a row."""
             async with self._engine.connect() as conn:
                 tables = await conn.run_sync(
-                    lambda sync_conn: sa_inspect(sync_conn).get_table_names()
+                    lambda sync_conn: sa_inspect(sync_conn).get_table_names(schema=sync_conn.dialect.default_schema_name)
                 )
                 if "alembic_version" not in tables:
                     return False
