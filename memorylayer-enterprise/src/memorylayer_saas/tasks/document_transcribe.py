@@ -31,6 +31,7 @@ from memorylayer_saas.services.document.page_figures import (
     PAGE_FIGURES_METADATA_KEY,
     store_page_figures,
 )
+from memorylayer_saas.services.document.page_layout import PAGE_LAYOUT_METADATA_KEY, store_page_layout
 from memorylayer_saas.services.transcription import EXT_TRANSCRIPTION_SERVICE
 # Shared page-batch size: process image-derived transcription in fixed-size page
 # batches so peak memory is O(batch pages), not O(all pages). Same constant used
@@ -165,12 +166,16 @@ class DocumentTranscribeTaskHandler(TaskHandlerPlugin):
                             "transcript": page.transcript,
                             "transcript_model": page.transcript_model,
                         }
+                        layout = await store_page_layout(blob_storage=blob_storage,
+                            workspace_id=doc.workspace_id, doc_id=doc.id, page_no=page.page_no,
+                            page_image_b64=images_b64[req_idx], page=page_result)
+                        page.metadata = {k: v for k, v in (page.metadata or {}).items()
+                                         if k not in (PAGE_LAYOUT_METADATA_KEY, PAGE_FIGURES_METADATA_KEY)}
                         if figures:
-                            page.metadata = {
-                                **(page.metadata or {}),
-                                PAGE_FIGURES_METADATA_KEY: figures,
-                            }
-                            page_updates["metadata"] = page.metadata
+                            page.metadata[PAGE_FIGURES_METADATA_KEY] = figures
+                        if layout:
+                            page.metadata[PAGE_LAYOUT_METADATA_KEY] = layout
+                        page_updates["metadata"] = page.metadata
                         await storage.update_page(page.id, **page_updates)
 
                     # Release this batch's image bytes before the next batch.

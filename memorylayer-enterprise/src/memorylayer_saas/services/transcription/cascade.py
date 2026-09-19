@@ -70,6 +70,8 @@ class CascadeTranscriber:
                         content=attempt.content,
                         model=attempt.model or None,
                         regions=tuple(attempt.regions),
+                        raw_content=attempt.raw_content, provider=attempt.provider,
+                        output_contract=attempt.output_contract,
                     ),
                     attempts,
                 )

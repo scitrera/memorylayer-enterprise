@@ -118,11 +118,18 @@ def parse_grounded_page(raw: str) -> list[PageRegion]:
         ref_match = _REF_DET_RE.match(raw, position)
         if ref_match:
             content = _clean_fragment(ref_match.group("text"))
-            if content:
-                regions.append(
-                    PageRegion(LABEL_TEXT, _parse_bbox(ref_match.group("box")), content)
-                )
-            position = ref_match.end()
+            next_marker = _NEXT_MARKER_RE.search(raw, ref_match.end())
+            end = next_marker.start() if next_marker else length
+            label = content.lower().replace(" ", "_")
+            if label in {"text", "title", "sub_title", "header", "footer", "table", "image",
+                         "figure", "figure_title", "caption", "equation", "page_number"}:
+                regions.append(PageRegion("image" if label == "figure" else label,
+                    _parse_bbox(ref_match.group("box")), _clean_fragment(raw[ref_match.end():end])))
+                position = end
+            else:
+                if content:
+                    regions.append(PageRegion(LABEL_TEXT, _parse_bbox(ref_match.group("box")), content))
+                position = ref_match.end()
             continue
 
         det_match = _DET_RE.match(raw, position)

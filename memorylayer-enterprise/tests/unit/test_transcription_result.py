@@ -52,7 +52,7 @@ def _response(*entries: dict) -> dict:
 
 def test_reads_the_shape_the_server_actually_emits():
     pages = pages_from_embed_server_response(_response(_page(0, "# Title")))
-    assert pages == [TranscribedPage(request_index=0, content="# Title", model="vlm-v1")]
+    assert pages == [TranscribedPage(request_index=0, content="# Title", model="vlm-v1", raw_content="# Title", provider="glm-ocr")]
 
 
 def test_legacy_pages_key_yields_nothing():

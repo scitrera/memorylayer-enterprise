@@ -58,6 +58,7 @@ from .inference_client import (
 )
 from .office_convert import convert_office_bytes_to_pdf
 from .page_figures import PAGE_FIGURES_METADATA_KEY, store_page_figures
+from .page_layout import PAGE_LAYOUT_METADATA_KEY, store_page_layout
 from ...config import (
     MEMORYLAYER_DOCUMENT_MAX_FILE_SIZE,
     DEFAULT_MEMORYLAYER_DOCUMENT_MAX_FILE_SIZE,
@@ -1141,15 +1142,15 @@ class DocumentIngestionService:
                         captions=page_result.figure_captions,
                         logger=self.logger,
                     )
+                    layout = await store_page_layout(blob_storage=self._blob,
+                        workspace_id=doc.workspace_id, doc_id=doc.id, page_no=p.page_no,
+                        page_image_b64=images_b64[req_idx], page=page_result)
+                    p.metadata = {k: v for k, v in (p.metadata or {}).items()
+                                  if k not in (PAGE_LAYOUT_METADATA_KEY, PAGE_FIGURES_METADATA_KEY)}
                     if figures:
-                        # Records ride in page metadata so the stored crops are
-                        # discoverable — an unenumerable blob is unfetchable.
-                        # This path persists pages later (create_page), so
-                        # mutating the in-memory page is enough.
-                        p.metadata = {
-                            **(p.metadata or {}),
-                            PAGE_FIGURES_METADATA_KEY: figures,
-                        }
+                        p.metadata[PAGE_FIGURES_METADATA_KEY] = figures
+                    if layout:
+                        p.metadata[PAGE_LAYOUT_METADATA_KEY] = layout
 
                 # Drop this batch's image bytes before rendering the next batch.
                 del images_b64

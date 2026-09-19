@@ -202,15 +202,16 @@ def make_mock_embed_client(transcript_result=None, embeddings=None, mv_results=N
 
 
 def make_mock_blob_storage():
-    blob = AsyncMock()
-    blob.retrieve_file.return_value = b"fake-image-bytes"
-    blob.store_file.return_value = "/blobs/stored"
-    blob.page_transcript_path.return_value = (
-        "/blobs/ws_test/documents/doc_aaa000000001/transcripts/page_0000.md"
-    )
-    blob.page_image_path.return_value = (
-        "/blobs/ws_test/documents/doc_aaa000000001/pages/page_0000.png"
-    )
+    import io
+    from PIL import Image
+    image = io.BytesIO()
+    Image.new("RGB", (20, 10), "white").save(image, format="PNG")
+    blob = MagicMock()
+    blob.retrieve_file = AsyncMock(return_value=image.getvalue())
+    blob.store_file = AsyncMock(return_value="/blobs/stored")
+    blob.page_transcript_path.return_value = "/blobs/ws_test/documents/doc_aaa000000001/transcripts/page_0000.md"
+    blob.page_image_path.return_value = "/blobs/ws_test/documents/doc_aaa000000001/pages/page_0000.png"
+    blob.page_raw_ocr_path.side_effect = lambda w, d, n, h: f"/blobs/{w}/{d}/raw/{n}-{h}.txt"
     return blob
 
 
@@ -532,11 +533,13 @@ class TestDocumentTranscribeTaskHandler:
         # Transcript stored to blob
         blob_storage.store_file.assert_called()
         # Page updated with transcript
-        storage.update_page.assert_any_call(
-            "page_001",
-            transcript="Transcribed.",
-            transcript_model="vlm-v1",
-        )
+        update = next(call.kwargs for call in storage.update_page.call_args_list if call.args == ("page_001",))
+        assert update["transcript"] == "Transcribed."
+        assert update["transcript_model"] == "vlm-v1"
+        layout = update["metadata"]["ocr_layout"]
+        assert layout["image_width"] == 20 and layout["image_height"] == 10
+        assert layout["regions"] == []  # ungrounded provider retains raw OCR for later localization
+        blob_storage.store_file.assert_any_call(layout["raw_ocr"]["storage_path"], b"Transcribed.")
         # Progress and next phase (embed carries the retry policy)
         storage.update_job.assert_any_call("job_aaa000000001", progress_percent=40)
         task_service.schedule_task.assert_called_once_with(

@@ -99,6 +99,8 @@ class TranscriptionAttempt:
     model: str
     success: bool = False
     content: str = ""
+    raw_content: str = ""
+    output_contract: str = ""
     tokens_in: int = 0
     tokens_out: int = 0
     latency_ms: float = 0.0
@@ -297,6 +299,8 @@ class OpenAIChatTranscriptionProvider:
 
             choice = (body.get("choices") or [{}])[0]
             raw = (choice.get("message") or {}).get("content") or ""
+            attempt.raw_content = raw
+            attempt.output_contract = cfg.contract.name
             attempt.finish_reason = (choice.get("finish_reason") or "unknown").lower()
 
             usage = body.get("usage") or {}

@@ -220,6 +220,10 @@ class BlobStorageService:
         """
         return f"{self._base_path}/{workspace_id}/documents/{doc_id}/transcripts/page_{page_no:04d}.md"
 
+    def page_raw_ocr_path(self, workspace_id: str, doc_id: str, page_no: int, sha256: str) -> str:
+        """Immutable raw model output, versioned independently of the rendered transcript."""
+        return f"{self._base_path}/{workspace_id}/documents/{doc_id}/raw-ocr/page_{page_no:04d}_{sha256}.txt"
+
     def page_figure_path(
         self, workspace_id: str, doc_id: str, page_no: int, figure_no: int,
     ) -> str:

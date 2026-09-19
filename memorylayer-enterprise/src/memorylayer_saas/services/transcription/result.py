@@ -53,6 +53,9 @@ class TranscribedPage:
     #: the transcript (rather than only inside its ``[figure N: ...]`` marker)
     #: so the persisted figure record can carry it without re-parsing text.
     figure_captions: dict[int, str] = field(default_factory=dict)
+    raw_content: str = ""
+    provider: str = ""
+    output_contract: str = ""
 
     @property
     def figures(self) -> tuple[PageRegion, ...]:
@@ -93,6 +96,9 @@ def pages_from_embed_server_response(result: dict) -> list[TranscribedPage]:
                 content=content,
                 model=entry.get("model_used"),
                 regions=tuple(regions),
+                raw_content=raw if isinstance(raw, str) else content,
+                provider=entry.get("provider_used") or "",
+                output_contract=entry.get("output_contract") or "",
             )
         )
     return pages
