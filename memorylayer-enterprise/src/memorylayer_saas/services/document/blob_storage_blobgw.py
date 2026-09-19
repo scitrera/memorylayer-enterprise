@@ -244,7 +244,8 @@ class BlobGWBlobStoragePlugin(BlobStoragePluginBase):
 def tenant_client(base_url: str, domain: str):
     """Tenant-scoped I/O using the released 0.7.1 client's request hooks.
 
-    Both hooks are needed: HEAD and paginated LIST use response headers.
+    Both hooks are needed; the released client bypasses them in HEAD, so
+    that method is explicitly scoped too. Paginated LIST uses response headers.
     This private adapter is only used by this service's buffered I/O surface;
     it does not expose the client's separate streaming entry point.
     """
@@ -254,6 +255,22 @@ def tenant_client(base_url: str, domain: str):
         raise ValueError("Invalid MemoryLayer blobgw tenant domain")
 
     class TenantClient(BlobGWClient):
+        def head(self, ref):
+            import json
+            from blobgw_client import ObjectInfo
+            _, headers = self._request_with_headers("HEAD", self._object_url(ref))
+            return ObjectInfo(ref=ref, domain=headers.get("X-Blobgw-Domain", ""),
+                size=int(headers.get("Content-Length", "0")),
+                content_hash=headers.get("ETag", "").strip('"'),
+                content_type=headers.get("Content-Type", ""),
+                created_at=headers.get("X-Blobgw-Created-At", ""),
+                version=headers.get("X-Blobgw-Version", ""),
+                pending=headers.get("X-Blobgw-Pending", "").lower() == "true",
+                user_meta=json.loads(headers.get("X-Blobgw-User-Meta", "{}")))
+
+        def get_stream(self, ref):
+            raise NotImplementedError("This internal adapter supports buffered I/O only")
+
         def _request(self, method, url, *, data=None, headers=None):
             return super()._request(method, url, data=data,
                                     headers={**(headers or {}), "X-Blobgw-Domain": domain})

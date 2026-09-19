@@ -56,7 +56,7 @@ def test_tenant_domain_on_both_released_client_request_hooks():
   assert client.get("page")==b"data"
   assert req.call_args.kwargs["headers"]["X-Blobgw-Domain"]=="example"
  with patch.object(BlobGWClient,"_request_with_headers",return_value=(b"",{})) as req:
-  client._request_with_headers("HEAD","http://blobgw/v1/objects/page")
+  assert client.exists("page") is True
   assert req.call_args.kwargs["headers"]["X-Blobgw-Domain"]=="example"
 
 @pytest.mark.asyncio
