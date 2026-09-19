@@ -272,11 +272,16 @@ def tenant_client(base_url: str, domain: str):
             raise NotImplementedError("This internal adapter supports buffered I/O only")
 
         def _request(self, method, url, *, data=None, headers=None):
-            return super()._request(method, url, data=data,
-                                    headers={**(headers or {}), "X-Blobgw-Domain": domain})
+            body, _ = self._request_with_headers(method, url, data=data, headers=headers)
+            return body
 
         def _request_with_headers(self, method, url, *, data=None, headers=None):
-            return super()._request_with_headers(method, url, data=data,
-                                                 headers={**(headers or {}), "X-Blobgw-Domain": domain})
+            from blobgw_client import BlobGWError
+            body, response_headers = super()._request_with_headers(
+                method, url, data=data,
+                headers={**(headers or {}), "X-Blobgw-Domain": domain})
+            if response_headers.get("X-Blobgw-Domain") != domain:
+                raise BlobGWError("blobgw response tenant domain mismatch")
+            return body, response_headers
 
     return TenantClient(base_url)

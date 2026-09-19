@@ -52,12 +52,19 @@ async def test_browser_requires_scope_and_canonical_storage(change):
 def test_tenant_domain_on_both_released_client_request_hooks():
  from blobgw_client import BlobGWClient
  client=tenant_client("http://blobgw","example")
- with patch.object(BlobGWClient,"_request",return_value=b"data") as req:
+ with patch.object(BlobGWClient,"_request_with_headers",return_value=(b"data",{"X-Blobgw-Domain":"example"})) as req:
   assert client.get("page")==b"data"
   assert req.call_args.kwargs["headers"]["X-Blobgw-Domain"]=="example"
- with patch.object(BlobGWClient,"_request_with_headers",return_value=(b"",{})) as req:
   assert client.exists("page") is True
   assert req.call_args.kwargs["headers"]["X-Blobgw-Domain"]=="example"
+
+@pytest.mark.parametrize("headers", [{}, {"X-Blobgw-Domain":"default"}])
+@pytest.mark.parametrize("operation", ["get", "head", "list"])
+def test_tenant_client_rejects_wrong_or_missing_response_domain(headers,operation):
+ from blobgw_client import BlobGWClient, BlobGWError
+ client=tenant_client("http://blobgw","example")
+ with patch.object(BlobGWClient,"_request_with_headers",return_value=(b"[]",headers)),pytest.raises(BlobGWError,match="domain mismatch"):
+  getattr(client,operation)("page")
 
 @pytest.mark.asyncio
 async def test_single_page_cannot_be_read_using_another_workspaces_grant():
@@ -79,17 +86,23 @@ def test_migration_retains_local_data_and_refuses_different_destination(tmp_path
  migration=importlib.util.module_from_spec(spec);spec.loader.exec_module(migration)
  class Client:
   def __init__(self):self.files={};self.puts=0
+  def list(self,prefix):return []
+  def head(self,key):return SimpleNamespace(domain="example")
   def exists(self,key):return key in self.files
   def get(self,key):return self.files[key]
   def put(self,key,data,mime):self.files[key]=data;self.puts+=1
  source=tmp_path/"page.png";source.write_bytes(b"image");client=Client()
  assert migration.migrate(tmp_path)["verified"] is False
- assert migration.migrate(tmp_path,client)["verified"] is True
- migration.migrate(tmp_path,client);assert client.puts==1
+ assert migration.migrate(tmp_path,client,tenant="example")["verified"] is True
+ migration.migrate(tmp_path,client,tenant="example");assert client.puts==1
  client.files[next(iter(client.files))]=b"changed"
  with pytest.raises(ValueError,match="refusing"):
-  migration.migrate(tmp_path,client)
+  migration.migrate(tmp_path,client,tenant="example")
  assert source.read_bytes()==b"image"
+ client.files[next(iter(client.files))]=b"image"
+ client.head=lambda key:SimpleNamespace(domain="default")
+ with pytest.raises(ValueError,match="domain mismatch"):
+  migration.migrate(tmp_path,client,tenant="example")
  (tmp_path/"link").symlink_to(source)
  with pytest.raises(ValueError,match="symlink"):
   migration.migrate(tmp_path)

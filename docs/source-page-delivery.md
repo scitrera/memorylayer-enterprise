@@ -45,3 +45,10 @@ the active provider. Switch the provider only after successful verification.
 Retain the old volume for rollback; if new writes have occurred after the switch,
 copy those back and verify before reverting. There is deliberately no silent
 fallback to stale local objects when a blobgw ref is missing.
+
+The internal gateway must support tenant routing with `-tenant-config` independently
+of NATS. Scoped requests require a matching `X-Blobgw-Domain` response header; an
+older server that silently uses its default store is rejected. Migration performs
+a read-only domain preflight before writing, then verifies each object's HEAD
+domain and downloaded SHA-256. A byte match in a different domain is not a
+successful migration.

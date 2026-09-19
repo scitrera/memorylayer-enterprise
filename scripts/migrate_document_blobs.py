@@ -14,10 +14,16 @@ from pathlib import Path
 from memorylayer_saas.services.document.blob_storage_blobgw import tenant_client, _content_type_for
 
 
-def migrate(root, client=None):
+def migrate(root, client=None, *, tenant=None):
     root = root.resolve(strict=True)
     files = sorted(p for p in root.rglob('*') if p.is_file() or p.is_symlink())
     total = 0
+    if client:
+        if not tenant:
+            raise ValueError('An explicit destination tenant is required')
+        # Read-only preflight. The scoped adapter verifies the response header,
+        # including an empty listing, before this script can write any object.
+        client.list('__migration_domain_check__/')
     for path in files:
         if path.is_symlink():
             raise ValueError('Source contains a symlink; migration stopped')
@@ -27,10 +33,14 @@ def migrate(root, client=None):
         if client:
             ref = str(path).lstrip('/')
             if client.exists(ref):
+                if client.head(ref).domain != tenant:
+                    raise ValueError('Destination tenant domain mismatch')
                 if hashlib.sha256(client.get(ref)).digest() != digest:
                     raise ValueError('Destination differs; refusing to overwrite an existing blob')
             else:
                 client.put(ref, data, _content_type_for(str(path)))
+            if client.head(ref).domain != tenant:
+                raise ValueError('Destination tenant domain mismatch')
             if hashlib.sha256(client.get(ref)).digest() != digest:
                 raise ValueError('Destination read-back verification failed')
         after = path.stat()
@@ -40,7 +50,7 @@ def migrate(root, client=None):
     after_files = sorted(p for p in root.rglob('*') if p.is_file() or p.is_symlink())
     if files != after_files:
         raise ValueError('Source inventory changed during migration')
-    return {'files':len(files), 'bytes':total, 'verified': client is not None, 'local_files_retained':True}
+    return {'files':len(files), 'bytes':total, 'verified': client is not None, 'local_files_retained':True, 'destination_domain':tenant if client else None}
 
 
 def main():
@@ -51,6 +61,6 @@ def main():
     parser.add_argument('--copy',action='store_true')
     args=parser.parse_args()
     client=tenant_client(args.blobgw_url,args.tenant) if args.copy else None
-    print(json.dumps(migrate(args.source_root,client)))
+    print(json.dumps(migrate(args.source_root,client,tenant=args.tenant)))
 
 if __name__=='__main__':main()
