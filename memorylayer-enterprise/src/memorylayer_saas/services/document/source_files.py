@@ -79,7 +79,11 @@ async def _page_data(page, blob_service, kind):
     return data, mime
 
 
-async def export_page(v, ctx, page, blob_service, kind: str) -> dict:
+async def export_page(v, ctx, page, blob_service, kind: str, *, delivery: str = "internal") -> dict:
+    if delivery == "browser":
+        return await export_browser_page(v, ctx, page, blob_service, kind)
+    if delivery != "internal":
+        raise HTTPException(422, "Unsupported delivery mode")
     fetch_url = _fetch_base(v)
     if ctx.tenant_id != _tenant(v) or not page.workspace_id:
         raise HTTPException(403, "Source file tenant/workspace scope required")
@@ -134,3 +138,47 @@ async def redeem_page(v, token: str, storage, blob_service):
     except (ValueError, KeyError, TypeError):
         raise HTTPException(404, "Source file unavailable") from None
     return data, mime
+
+
+async def export_browser_page(v, ctx, page, blob_service, kind):
+    """Auth-bound edge capability for a canonical, hash-bound rendered image.
+
+    Workspace authorization is enforced by the API before this function. The
+    subject comes from checked OBO identity, never from a caller's request body.
+    Existing internal agent descriptors retain their task-authority contract.
+    """
+    import httpx
+    from .blob_storage_blobgw import BlobGWBlobStorageService
+
+    tenant = _tenant(v)
+    subject = getattr(ctx, "user_id", None)
+    if ctx.tenant_id != tenant or not page.workspace_id or not subject:
+        raise HTTPException(403, "User and tenant/workspace scope required")
+    if kind != "image":
+        raise HTTPException(422, "Browser delivery supports rendered images")
+    if not isinstance(blob_service, BlobGWBlobStorageService) or blob_service.domain != tenant:
+        raise HTTPException(503, "Browser page delivery requires tenant-scoped blobgw storage")
+    edge = str(v.environ("MEMORYLAYER_BLOBGW_EDGE_URL", default="") or "").rstrip("/")
+    parsed = urlsplit(edge)
+    if parsed.scheme not in ("http", "https") or not parsed.hostname or parsed.username or parsed.password or parsed.query or parsed.fragment:
+        raise HTTPException(503, "Page delivery edge is not configured correctly")
+    data, mime = await _page_data(page, blob_service, kind)
+    digest = hashlib.sha256(data).hexdigest()
+    ref = blob_service._ref(page.image_storage_path)
+    async with httpx.AsyncClient(timeout=30) as http:
+        response = await http.post(edge + "/capabilities", headers={
+            "X-Auth-Tenant-ID": tenant, "X-Scitrera-User": subject,
+        }, json={"op": "GET", "ref": ref, "content_hash": digest,
+                 "ttl_seconds": CAP_TTL, "require_auth": True, "match_mode": "exact"})
+        if response.status_code != 200:
+            raise HTTPException(503, "Page delivery capability unavailable")
+        capability = response.json()
+    from urllib.parse import quote, parse_qs
+    url = urlsplit(capability.get("capability_url", ""))
+    if (url.scheme or url.netloc or url.fragment or url.path != "/blob/" + quote(ref, safe="/")
+            or set(parse_qs(url.query)) != {"cap"}):
+        raise HTTPException(503, "Invalid page delivery capability")
+    return {"version": 1, "document_id": page.document_id, "page_id": page.id,
+            "kind": kind, "mime": mime, "size_bytes": len(data), "sha256": digest,
+            "url": "/storage/" + tenant + capability["capability_url"],
+            "expires_at": capability["expires_at"]}

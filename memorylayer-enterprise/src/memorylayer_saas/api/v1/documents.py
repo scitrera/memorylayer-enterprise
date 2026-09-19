@@ -1193,7 +1193,7 @@ async def get_document_page(
 
         # Also guards cross-document access: a page id from another document
         # must not be readable by naming any document the caller can see.
-        if not page or page.document_id != document_id:
+        if not page or page.document_id != document_id or page.workspace_id != ctx.workspace_id:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Page not found: {page_id}",
@@ -1238,6 +1238,7 @@ async def download_source_file(
 
 class SourceFileRequest(BaseModel):
     kind: str = Field(pattern="^(image|transcript)$")
+    delivery: str = Field(default="internal", pattern="^(internal|browser)$")
 
 
 @router.post("/{document_id}/pages/{page_id}/file")
@@ -1265,7 +1266,7 @@ async def materialize_page_file(
     except HTTPException:
         raise HTTPException(404, "Page not found") from None
     blob = get_extension(EXT_BLOB_STORAGE_SERVICE, v)
-    return await export_page(v, ctx, page, blob, body.kind)
+    return await export_page(v, ctx, page, blob, body.kind, delivery=body.delivery)
 
 
 @router.get(

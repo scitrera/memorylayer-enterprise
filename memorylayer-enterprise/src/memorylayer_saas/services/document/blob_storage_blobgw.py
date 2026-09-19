@@ -98,7 +98,8 @@ class BlobGWBlobStorageService(BlobStorageService):
     leading ``/`` stripped, since refs are not absolute).
     """
 
-    def __init__(self, client, not_found_exc: type[Exception], base_path: str, logger: Logger):
+    def __init__(self, client, not_found_exc: type[Exception], base_path: str, logger: Logger, domain: str = ""):
+        self.domain = domain
         # Intentionally does not call super().__init__ (which requires an
         # fsspec filesystem). Only self._base_path / self.logger are needed by
         # the inherited path-convention methods.
@@ -228,12 +229,37 @@ class BlobGWBlobStoragePlugin(BlobStoragePluginBase):
             MEMORYLAYER_BLOB_STORAGE_BASE_PATH,
             default=DEFAULT_MEMORYLAYER_BLOB_STORAGE_BASE_PATH,
         )
-        client = BlobGWClient(base_url)
+        domain = v.environ("MEMORYLAYER_BLOBGW_DOMAIN", default="")
+        client = tenant_client(base_url, domain) if domain else BlobGWClient(base_url)
         logger.info("Initialized blobgw blob storage: url=%s, base_path=%s", base_url, base_path)
         return BlobGWBlobStorageService(
-            client=client, not_found_exc=NotFound, base_path=base_path, logger=logger,
+            client=client, not_found_exc=NotFound, base_path=base_path, logger=logger, domain=domain,
         )
 
     def on_registration(self, v: Variables) -> None:
         super().on_registration(v)
         v.set_default_value(MEMORYLAYER_BLOBGW_URL, DEFAULT_MEMORYLAYER_BLOBGW_URL)
+
+
+def tenant_client(base_url: str, domain: str):
+    """Tenant-scoped I/O using the released 0.7.1 client's request hooks.
+
+    Both hooks are needed: HEAD and paginated LIST use response headers.
+    This private adapter is only used by this service's buffered I/O surface;
+    it does not expose the client's separate streaming entry point.
+    """
+    import re
+    from blobgw_client import BlobGWClient
+    if not re.fullmatch(r"[a-z0-9][a-z0-9-]{0,62}", domain):
+        raise ValueError("Invalid MemoryLayer blobgw tenant domain")
+
+    class TenantClient(BlobGWClient):
+        def _request(self, method, url, *, data=None, headers=None):
+            return super()._request(method, url, data=data,
+                                    headers={**(headers or {}), "X-Blobgw-Domain": domain})
+
+        def _request_with_headers(self, method, url, *, data=None, headers=None):
+            return super()._request_with_headers(method, url, data=data,
+                                                 headers={**(headers or {}), "X-Blobgw-Domain": domain})
+
+    return TenantClient(base_url)
