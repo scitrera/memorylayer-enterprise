@@ -60,6 +60,7 @@ s3 = ["s3fs>=2024.1.0"]
 # to the OSS embed server (oss/memorylayer-embed-server/[gpu]) where they
 # actually run.
 dev = [
+    "blobgw-client @ git+https://github.com/scitrera/memorylayer-storage.git@b51fa6c57b9444ec84b0de0c17cca5847c406d61#subdirectory=clients/python",
     "pytest>=8.0.0",
     "pytest-asyncio>=0.23.0",
     "pytest-cov>=4.1.0",
@@ -99,3 +100,6 @@ warn_unused_configs = true
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+
+[tool.hatch.metadata]
+allow-direct-references = true
