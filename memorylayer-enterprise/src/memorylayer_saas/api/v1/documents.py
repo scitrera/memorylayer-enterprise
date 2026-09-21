@@ -250,6 +250,7 @@ class DocumentPageStatus(BaseModel):
     """
 
     document_id: str
+    ingestion_status: Optional[str] = Field(None, description="Document lifecycle status; a failed document is not actively preparing")
     is_complete: bool
     first_missing_phase: Optional[str] = None
     expected_page_count: int
@@ -892,9 +893,11 @@ async def get_pages_status(
 
         gaps = await analyze_documents_gaps(v, storage_backend, docs)
 
+        lifecycle = {doc.id: getattr(doc.status, "value", doc.status) for doc in docs}
         documents = [
             DocumentPageStatus(
                 document_id=g.document_id,
+                ingestion_status=lifecycle.get(g.document_id),
                 is_complete=g.is_complete,
                 first_missing_phase=g.first_missing_phase,
                 expected_page_count=g.expected_page_count,
@@ -914,6 +917,7 @@ async def get_pages_status(
             if doc_id not in found:
                 documents.append(DocumentPageStatus(
                     document_id=doc_id,
+                    ingestion_status="missing",
                     is_complete=False,
                     first_missing_phase=PHASE_RENDER,
                     expected_page_count=0,
