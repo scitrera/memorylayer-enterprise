@@ -111,12 +111,20 @@ class DevTests(unittest.TestCase):
     def test_all_python_packages_use_one_checkout_and_core_once(self):
         projects = dev.python_projects(ROOT, self.repo, ["enterprise", "embed"])
         self.assertEqual(projects[:3], [self.repo / path for path in dev.OSS_PACKAGES.values()])
-        self.assertEqual(len(projects), 5)
+        self.assertEqual(len(projects), 6)
         command = dev.install_command("python", ROOT, projects, editable=True, dev=True)
-        self.assertEqual(command.count("--editable"), 5)
+        self.assertEqual(command.count("--editable"), 6)
         self.assertEqual(command.count(str(self.repo / "memorylayer-core-python")), 1)
         self.assertIn(str(ROOT / "memorylayer-enterprise") + "[dev]", command)
         self.assertNotIn("--no-deps", command)
+
+    def test_layout_standalone_needs_no_oss_packages(self):
+        self.assertEqual(dev.python_projects(ROOT, None, ["layout"]),
+                         [ROOT / "memorylayer-document-layout"])
+
+    def test_enterprise_installs_layout_from_same_checkout_once(self):
+        projects = dev.python_projects(ROOT, self.repo, ["layout", "enterprise"])
+        self.assertEqual(projects.count(ROOT / "memorylayer-document-layout"), 1)
 
     def test_image_install_has_no_editables_or_test_extras(self):
         projects = dev.python_projects(ROOT, self.repo, ["enterprise"])

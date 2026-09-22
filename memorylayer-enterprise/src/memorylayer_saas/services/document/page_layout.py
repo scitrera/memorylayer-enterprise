@@ -10,6 +10,7 @@ import io
 import json
 
 from PIL import Image
+from memorylayer_document_layout import locate_quote
 from ..transcription.regions import BBOX_SCALE
 
 PAGE_LAYOUT_METADATA_KEY = "ocr_layout"
@@ -60,3 +61,13 @@ async def store_page_layout(*, blob_storage, workspace_id, doc_id, page_no, page
         await blob_storage.store_file(path, raw)
         result["raw_ocr"] = {"storage_path": path, "sha256": digest}
     return result
+
+
+def locate_page_quote(page, quote: str, *, mode="text", image_sha256=None):
+    """Locate on an already-authorized document page without fetching source bytes.
+
+    Callers own workspace/document access and any accepted-review policy. This
+    returns display geometry only, never a claim-verification result.
+    """
+    return locate_quote(quote, page.transcript or "", (page.metadata or {}).get(PAGE_LAYOUT_METADATA_KEY),
+                        mode=mode, image_sha256=image_sha256)

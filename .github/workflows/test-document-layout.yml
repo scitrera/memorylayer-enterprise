@@ -1,0 +1,21 @@
+name: Test document layout library
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  locator:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7.0.0
+        with:
+          python-version: "3.12"
+      - run: python -m pip install build pytest
+      - run: python -m build memorylayer-document-layout
+      - run: python -m pip install memorylayer-document-layout/dist/*.whl
+      - run: python -I -m pytest memorylayer-document-layout/tests -q
+      - run: python -m unittest discover -s tests/ci -p test_dev.py

@@ -64,3 +64,16 @@ def test_raw_transcript_format_still_supported_and_region_ids_change_with_conten
     first=layout_metadata(page(),image_bytes())
     changed=page();object.__setattr__(changed,'regions',(PageRegion('text',(100,200,800,400),'Changed.'),))
     assert first['regions'][0]['id']!=layout_metadata(changed,image_bytes())['regions'][0]['id']
+
+
+def test_quote_locator_consumes_persisted_ingestion_layout_and_expected_image():
+    from types import SimpleNamespace
+    from memorylayer_saas.services.document.page_layout import locate_page_quote
+    p=page();layout=layout_metadata(p,image_bytes())
+    stored=SimpleNamespace(transcript=p.content,metadata={'ocr_layout':layout})
+    result=locate_page_quote(stored,'Service is optional.',image_sha256=layout['image_sha256'])
+    assert result==[dict(region_id=layout['regions'][0]['id'],image_sha256=layout['image_sha256'],
+                        bbox=[.1,.2,.8,.4],origin='ocr')]
+    assert locate_page_quote(stored,'Service is optional.',image_sha256='0'*64)==[]
+    stored.transcript += ' changed'
+    assert locate_page_quote(stored,'Service is optional.')==[]

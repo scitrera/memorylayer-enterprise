@@ -20,6 +20,7 @@ RUN groupadd --gid 1000 memorylayer && \
 
 WORKDIR /app
 COPY memorylayer-enterprise /src/memorylayer-enterprise
+COPY memorylayer-document-layout /src/memorylayer-document-layout
 COPY oss-source.toml /src/oss-source.toml
 COPY scripts/dev.py /src/scripts/dev.py
 # Empty uses the reviewed commit in oss-source.toml. Development builds can

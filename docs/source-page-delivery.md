@@ -52,3 +52,20 @@ older server that silently uses its default store is rejected. Migration perform
 a read-only domain preflight before writing, then verifies each object's HEAD
 domain and downloaded SHA-256. A byte match in a different domain is not a
 successful migration.
+
+
+## Shared quote-to-region locator
+
+The companion [memorylayer-document-layout](../memorylayer-document-layout/README.md)
+package owns deterministic text/table matching and public layout validation.
+It is dependency-free, works on saved snapshots, and is installed from the same
+checkout by `scripts/dev.py enterprise`. `scripts/dev.py layout` installs only
+the library and does not fetch the OSS server. The enterprise document layer's
+`locate_page_quote` accepts an already-authorized page and uses this same library.
+
+Customer applications retain permission checks, review revision/citation policy
+and selected-crop receipts. The locator returns display geometry and never grants
+access or declares a claim supported. No HTTP round trip or server installation
+is needed for matching against an existing page snapshot. The library has its own
+0.1.0 package version and is consumed through an explicit source pin until a
+package-index release is deliberately made.

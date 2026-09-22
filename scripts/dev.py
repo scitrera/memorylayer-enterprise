@@ -23,6 +23,7 @@ import venv
 ROOT = Path(__file__).resolve().parents[1]
 COMMIT = re.compile(r"[0-9a-f]{40}\Z")
 COMPONENTS = {
+    "layout": "memorylayer-document-layout",
     "enterprise": "memorylayer-enterprise",
     "embed": "memorylayer-embed-server-enterprise",
     "connectors": "memorylayer-data-connectors",
@@ -131,6 +132,8 @@ def python_projects(root: Path, source: Path | None, components: list[str]) -> l
         if metadata["name"] != name:
             raise ValueError(f"Incorrect OSS package at {path}")
         projects.append(path)
+    if "enterprise" in components and "layout" not in components:
+        projects.append(root / COMPONENTS["layout"])
     projects.extend(root / COMPONENTS[c] for c in components if c != "admin")
     return projects
 
@@ -177,7 +180,7 @@ def main() -> None:
         print(json.dumps(choice, default=str, indent=2))
         return
     source = None
-    if any(c != "connectors" for c in components):
+    if any(c in {"enterprise", "embed", "admin"} for c in components):
         source = prepare_source(choice, args.cache_dir.resolve())
     projects = python_projects(ROOT, source["path"] if source else None, components)
     if projects:

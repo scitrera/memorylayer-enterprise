@@ -19,6 +19,7 @@ classifiers = [
 ]
 
 dependencies = [
+    "memorylayer-document-layout==0.1.0",
     # scripts/dev.py installs both from one Git revision or local checkout.
     # The default LLM provider and SparkRoute gateway use the OpenAI-compatible client.
     "memorylayer-server[openai]>=0.2.0",
