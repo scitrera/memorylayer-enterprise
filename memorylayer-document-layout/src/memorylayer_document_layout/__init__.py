@@ -96,7 +96,8 @@ def locate_quote(
     text: str,
     layout: Any,
     *,
-    mode: Literal["text", "table_row"] = "text",
+    mode: Literal["text", "table_row", "figure"] = "text",
+    locator: str = "",
     image_sha256: str | None = None,
 ) -> list[LocatedRegion]:
     """Locate a unique quotation using existing whole-block geometry.
@@ -106,16 +107,23 @@ def locate_quote(
     pipe-separated row in one recorded HTML table; it tolerates the documented
     OCR currency/math delimiter error without changing digits/signs/percentages.
 
+    ``figure`` locates explicit ``[figure N]`` markers, or whole figure groups
+    immediately following an exact, unique heading/caption named in ``quote``
+    or ``locator``. It checks the default OCR transcript's full reading order.
+    It does not recognize text inside an untranscribed image or infer subregions.
+
     This grants no source access and establishes no claim-verification result.
     Authorize the source before calling; pass the expected image hash when it is
     available. Missing, stale, ambiguous or unlocated matches return an empty list.
-    Neither mode invents row/cell rectangles or modifies the input layout/text.
+    No mode invents rectangles or modifies the input layout/text.
     """
-    if mode not in ("text", "table_row"):
+    if mode not in ("text", "table_row", "figure"):
         raise ValueError("Unknown quote locator mode")
     layout = validate_layout(layout, text, image_sha256=image_sha256)
     if layout is None or not isinstance(quote, str) or not quote.strip():
         return []
+    if mode == "figure":
+        return _figure_regions(quote, locator, text, layout)
     if mode == "text":
         return _text_regions(quote, text, layout)
     return _table_quote_regions(quote, text, layout)
@@ -152,6 +160,104 @@ def _text_regions(quote, page_text, layout):
     if not selected or any(r["bbox"] is None for r in selected):
         return []
     return [_region(r, layout) for r in selected]
+
+
+def _figure_blocks(layout):
+    """Reconstruct the default grounded-OCR transcript, retaining empty images.
+
+    Headers/page numbers are omitted by that renderer. Numbering is page-local
+    and counts every image, including ones with invalid boxes. A caller with a
+    different rendering policy must not use this ordinal mapping.
+    """
+    blocks, number = [], 0
+    for region in layout["regions"]:
+        label, text = region["label"], region["text"]
+        if label in ("header", "page_number"):
+            continue
+        if label == "image":
+            number += 1
+            text = f"[figure {number}]" + ("\n\n" + text if text else "")
+        elif label == "title" and text:
+            text = "## " + text
+        if text:
+            blocks.append((text, region))
+    return blocks
+
+
+def _contains_anchor(haystack, anchor):
+    return re.search(r"(?<!\w)" + re.escape(anchor) + r"(?!\w)", haystack) is not None
+
+
+def _figure_regions(quote, locator, page_text, layout):
+    """Display whole recorded figures; never guess from semantic similarity.
+
+    Captions between images are ambiguous unless an explicit below/beneath
+    relationship selects the following image. Named headings select their
+    entire immediately following group (e.g. two side-by-side illustrations).
+    """
+    if not isinstance(locator, str):
+        return []
+    blocks = _figure_blocks(layout)
+    rendered = _normalized(" ".join(text for text, _ in blocks))
+    if rendered != _normalized(page_text):
+        return []
+    figures = [r for _, r in blocks if r["label"] == "image"]
+    if not figures:
+        return []
+    selectors = re.findall(r"\[figure ([^\]]*)\]", quote + " " + locator)
+    if selectors:
+        # No partial match if any explicitly requested marker is missing.
+        if any(not re.fullmatch(r"[1-9][0-9]{0,8}", n) for n in selectors):
+            return []
+        numbers = {int(n) for n in selectors}
+        if any(n > len(figures) for n in numbers):
+            return []
+        selected = [r for i, r in enumerate(figures, 1) if i in numbers]
+    else:
+        selected = []
+        citation = _normalized(quote + " " + locator).casefold()
+        location = _normalized(locator).casefold()
+        # This mode only associates a preceding anchor with following figures.
+        # Opposite-direction prose needs explicit figure markers or a crop.
+        if re.search(r"\b(?:above|before|preceding)\b", location):
+            return []
+        for i, (text, region) in enumerate(blocks):
+            if region["label"] == "image" or i + 1 >= len(blocks):
+                continue
+            if blocks[i + 1][1]["label"] != "image":
+                continue
+            anchor = _normalized(re.sub(r"^#{1,6}\s+", "", text)).casefold()
+            # Full short headings/captions only; never partial or fuzzy labels.
+            if not 8 <= len(anchor) <= 240 or len(anchor.split()) < 2:
+                continue
+            if not _contains_anchor(citation, anchor):
+                continue
+            if rendered.casefold().count(anchor) != 1:
+                return []
+            heading = region["label"] in ("title", "sub_title") or text.startswith("#")
+            if not heading and i and blocks[i - 1][1]["label"] == "image":
+                forward = re.search(
+                    r"(?:below|beneath|under|following) (?:the )?[\"'“‘]?" + re.escape(anchor), location
+                )
+                # A full quoted caption plus an explicit 'beneath it' locator
+                # is also unambiguous about which adjacent image is intended.
+                forward = forward or (_normalized(quote).casefold() == anchor
+                    and re.search(r"\b(?:below|beneath|under) it\b", location))
+                if not forward:
+                    continue
+            group = []
+            for _, following in blocks[i + 1:]:
+                if following["label"] != "image":
+                    break
+                group.append(following)
+            if (region["bbox"] is None or any(r["bbox"] is None for r in group)
+                    or any(r["bbox"][1] < region["bbox"][3] - 0.01 for r in group)):
+                return []
+            selected.extend(group)
+    if not selected or any(r["bbox"] is None for r in selected):
+        return []
+    ids = {r["id"] for r in selected}
+    return [_region(r, layout) for r in figures if r["id"] in ids]
 
 
 class _TableRows(HTMLParser):

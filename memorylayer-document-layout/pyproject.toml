@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "memorylayer-document-layout"
-version = "0.1.0"
+version = "0.2.0"
 description = "Deterministic quote location in hash-bound MemoryLayer page layouts"
 readme = "README.md"
 requires-python = ">=3.12"

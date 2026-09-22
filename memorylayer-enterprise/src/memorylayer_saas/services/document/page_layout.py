@@ -63,11 +63,11 @@ async def store_page_layout(*, blob_storage, workspace_id, doc_id, page_no, page
     return result
 
 
-def locate_page_quote(page, quote: str, *, mode="text", image_sha256=None):
+def locate_page_quote(page, quote: str, *, mode="text", locator="", image_sha256=None):
     """Locate on an already-authorized document page without fetching source bytes.
 
     Callers own workspace/document access and any accepted-review policy. This
     returns display geometry only, never a claim-verification result.
     """
     return locate_quote(quote, page.transcript or "", (page.metadata or {}).get(PAGE_LAYOUT_METADATA_KEY),
-                        mode=mode, image_sha256=image_sha256)
+                        mode=mode, locator=locator, image_sha256=image_sha256)

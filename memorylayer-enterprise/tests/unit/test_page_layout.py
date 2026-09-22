@@ -77,3 +77,23 @@ def test_quote_locator_consumes_persisted_ingestion_layout_and_expected_image():
     assert locate_page_quote(stored,'Service is optional.',image_sha256='0'*64)==[]
     stored.transcript += ' changed'
     assert locate_page_quote(stored,'Service is optional.')==[]
+
+
+def test_figure_locator_uses_ingested_placeholder_order_and_caption():
+    from types import SimpleNamespace
+    from memorylayer_saas.services.document.page_layout import locate_page_quote
+    from memorylayer_saas.services.transcription.regions import render_transcript
+    rows = (PageRegion('header', (0,0,100,30), 'Running header'),
+            PageRegion('title', (100,50,800,90), 'Illustration examples'),
+            PageRegion('image', (100,100,400,300), ''),
+            PageRegion('image', (500,100,800,300), ''),
+            PageRegion('page_number', (400,950,600,990), '2'))
+    transcript = render_transcript(rows)
+    p = TranscribedPage(0, transcript, 'ocr', regions=rows)
+    layout = layout_metadata(p, image_bytes())
+    stored = SimpleNamespace(transcript=transcript, metadata={'ocr_layout':layout})
+    result = locate_page_quote(stored, 'Two example illustrations', mode='figure',
+        locator='Below the Illustration examples heading', image_sha256=layout['image_sha256'])
+    assert [r['region_id'] for r in result] == [layout['regions'][i]['id'] for i in (2,3)]
+    assert locate_page_quote(stored, '[figure 2]', mode='figure') == [result[1]]
+    assert locate_page_quote(stored, '[figure 2]', mode='figure', image_sha256='0'*64) == []
