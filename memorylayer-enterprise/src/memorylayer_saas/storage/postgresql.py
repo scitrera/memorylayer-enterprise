@@ -6161,10 +6161,11 @@ class PostgreSQLBackend(ColdTierStorageBackend):
                 raise ValueError("Page %s not found" % page_id)
 
             for key, value in updates.items():
-                if hasattr(page_model, key):
-                    setattr(page_model, key, value)
-                elif key == 'metadata' and hasattr(page_model, 'meta'):
-                    page_model.meta = value
+                # DeclarativeBase.metadata exists but is not the mapped JSONB
+                # column. Resolve the public alias before checking attributes.
+                attr = 'meta' if key == 'metadata' else key
+                if hasattr(page_model, attr):
+                    setattr(page_model, attr, value)
                 else:
                     self.logger.warning("Skipping unknown page field: %s", key)
 
