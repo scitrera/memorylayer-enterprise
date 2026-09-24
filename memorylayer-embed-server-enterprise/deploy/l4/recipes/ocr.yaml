@@ -1,0 +1,29 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+recipe_version: '2'
+model: baidu/Unlimited-OCR
+model_revision: 07dea832e22aefee32ad281d4b80551282e1c168
+runtime: vllm
+max_nodes: 1
+executor: local
+builder: uv-venv
+builder_config:
+  venv_path: /opt/memorylayer/venvs/vllm
+  env_file: /run/memorylayer/vllm-env.sh
+  python: '3.12'
+  torch_backend: none
+  cuda_home: /usr/local/cuda
+  requirements_file: ../requirements.lock
+  verify_only: true
+defaults:
+  host: 127.0.0.1
+  port: 18012
+  tensor_parallel: 1
+  gpu_memory_utilization: 0.4
+  max_model_len: 8192
+  dtype: bfloat16
+  # approximately 3.2 GiB; expanded by 1.2 GiB after initial qualification.
+  kv_cache_memory_bytes: 3435973837
+command: vllm serve {model} --revision 07dea832e22aefee32ad281d4b80551282e1c168 --trust-remote-code --host {host} --port {port}
+  --gpu-memory-utilization {gpu_memory_utilization} --max-model-len {max_model_len} --dtype {dtype} -tp {tensor_parallel}
+  --kv-cache-memory-bytes {kv_cache_memory_bytes} --enforce-eager --max-num-seqs 1 --max-num-batched-tokens 8192 --limit-mm-per-prompt.image 1 --logits_processors vllm.model_executor.models.unlimited_ocr:NGramPerReqLogitsProcessor
+  --no-enable-prefix-caching --mm-encoder-tp-mode data --mm-processor-cache-gb 0

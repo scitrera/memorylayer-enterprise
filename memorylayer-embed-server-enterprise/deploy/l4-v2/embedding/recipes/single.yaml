@@ -1,0 +1,29 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+recipe_version: '2'
+model: Qwen/Qwen3-VL-Embedding-2B
+model_revision: 9f2f7e710d6d81056aa5c0a4f04764fec6bb7bda
+runtime: vllm
+max_nodes: 1
+executor: local
+builder: uv-venv
+builder_config:
+  venv_path: /opt/memorylayer/venvs/vllm
+  env_file: /run/memorylayer/vllm-env.sh
+  python: '3.12'
+  torch_backend: none
+  cuda_home: /usr/local/cuda
+  requirements_file: ../requirements.lock
+  verify_only: true
+defaults:
+  host: 127.0.0.1
+  port: 18000
+  tensor_parallel: 1
+  gpu_memory_utilization: 0.32
+  max_model_len: 8192
+  dtype: bfloat16
+  # 8 GiB candidate split-profile KV budget; qualify under mixed load.
+  kv_cache_memory_bytes: 8589934592
+command: vllm serve {model} --revision 9f2f7e710d6d81056aa5c0a4f04764fec6bb7bda --trust-remote-code --host {host} --port {port}
+  --gpu-memory-utilization {gpu_memory_utilization} --max-model-len {max_model_len} --dtype {dtype} -tp {tensor_parallel}
+  --kv-cache-memory-bytes {kv_cache_memory_bytes} --enforce-eager --max-num-seqs 32 --max-num-batched-tokens 16384 --limit-mm-per-prompt.image 1 --limit-mm-per-prompt.video 0 --runner pooling --convert
+  embed

@@ -55,6 +55,8 @@ async def ner(
 
     try:
         batch_results = await service.extract_batch(request.texts, request.labels)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
     except Exception as exc:  # noqa: BLE001 - surface as 500
         logger.error("NER batch inference failed: %s", exc)
         raise HTTPException(

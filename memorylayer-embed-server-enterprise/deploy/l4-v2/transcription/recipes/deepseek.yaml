@@ -1,0 +1,29 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+recipe_version: '2'
+model: deepseek-ai/DeepSeek-OCR-2
+model_revision: aaa02f3811945a91062062994c5c4a3f4c0af2b0
+runtime: vllm
+max_nodes: 1
+executor: local
+builder: uv-venv
+builder_config:
+  venv_path: /opt/memorylayer/venvs/vllm
+  env_file: /run/memorylayer/vllm-env.sh
+  python: '3.12'
+  torch_backend: none
+  cuda_home: /usr/local/cuda
+  requirements_file: ../requirements.lock
+  verify_only: true
+defaults:
+  host: 127.0.0.1
+  port: 18011
+  tensor_parallel: 1
+  gpu_memory_utilization: 0.4
+  max_model_len: 8192
+  dtype: bfloat16
+  # 1.5 GiB initial split-profile KV budget; serving flags from Thunder OCR2 recipe.
+  kv_cache_memory_bytes: 1610612736
+command: vllm serve {model} --revision aaa02f3811945a91062062994c5c4a3f4c0af2b0 --trust-remote-code --host {host} --port {port}
+  --gpu-memory-utilization {gpu_memory_utilization} --max-model-len {max_model_len} --dtype {dtype} -tp {tensor_parallel}
+  --kv-cache-memory-bytes {kv_cache_memory_bytes} --enforce-eager --max-num-seqs 8 --max-num-batched-tokens 4096 --limit-mm-per-prompt.image 1 --logits_processors vllm.model_executor.models.deepseek_ocr:NGramPerReqLogitsProcessor
+  --no-enable-prefix-caching --mm-encoder-tp-mode data --mm-processor-cache-gb 0

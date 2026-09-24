@@ -98,3 +98,9 @@ content block per page ahead of the user's text block.
 Requires the matching MemoryLayer 0.2.0 embedding server; see
 [development requirements](../docs/DEVELOPMENT.md). The extensions use
 [AGPL-3.0-only](LICENSE). Model weights retain their own licenses.
+
+## Portable L4 deployment
+
+The [three-model serving profile](deploy/l4/README.md) combines Qwen3-VL 1920-dimensional text/image embeddings, ColModernVBERT multivectors and Unlimited-OCR using sparkrun-prepared environments. It includes a portable image, cache preparation and synthetic smoke checks; Compose/Helm integration lives in platform-integration. See the profile qualification status before using it with production data.
+
+The [split v2 profiles](deploy/l4-v2/README.md) put Qwen/ColModern/GLiNER2 on one L4 and Unlimited/DeepSeek OCR2 on another, behind one path-routing proxy. The profile documentation describes concurrency limits and installation checks. Hosted deployment wrappers and operational records are maintained separately. V1 remains available independently.

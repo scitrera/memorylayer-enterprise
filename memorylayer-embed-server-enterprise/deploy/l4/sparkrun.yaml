@@ -1,0 +1,16 @@
+features:
+  builder.uv_venv: true
+  executor.local: true
+  executor.docker: false
+  gateway.sparkroute: false
+  gateway.litellm: false
+telemetry:
+  enabled: false
+
+# Controller metadata and native PID/log state are container-local.
+# The local executor keeps its PID/log defaults under ~/.cache/sparkrun/local.
+# Only compiled artifacts are persisted.
+cache_dir: /run/memorylayer/sparkrun
+runtime_cache:
+  dir: /cache/kernels
+  prune: false

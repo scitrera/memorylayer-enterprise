@@ -1,0 +1,28 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+recipe_version: '2'
+model: ModernVBERT/colmodernvbert-merged
+model_revision: a8b921f15ec3c8ba4264d40e1dbd7d77ea1336f0
+runtime: vllm
+max_nodes: 1
+executor: local
+builder: uv-venv
+builder_config:
+  venv_path: /opt/memorylayer/venvs/vllm
+  env_file: /run/memorylayer/vllm-env.sh
+  python: '3.12'
+  torch_backend: none
+  cuda_home: /usr/local/cuda
+  requirements_file: ../requirements.lock
+  verify_only: true
+defaults:
+  host: 127.0.0.1
+  port: 18001
+  tensor_parallel: 1
+  gpu_memory_utilization: 0.1
+  max_model_len: 4096
+  dtype: bfloat16
+command: vllm serve {model} --revision a8b921f15ec3c8ba4264d40e1dbd7d77ea1336f0 --trust-remote-code --host {host} --port {port}
+  --gpu-memory-utilization {gpu_memory_utilization} --max-model-len {max_model_len} --dtype {dtype} -tp {tensor_parallel}
+  --enforce-eager --max-num-seqs 16 --max-num-batched-tokens 16384 --limit-mm-per-prompt.image 1 --runner pooling --hf-overrides
+  '{"architectures":["ColModernVBertForRetrieval"]}'  --chat-template /cache/huggingface/hub/models--ModernVBERT--colmodernvbert-merged/snapshots/a8b921f15ec3c8ba4264d40e1dbd7d77ea1336f0/chat_template.jinja
+  --chat-template-content-format openai

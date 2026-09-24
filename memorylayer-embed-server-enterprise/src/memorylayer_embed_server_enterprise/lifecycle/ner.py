@@ -15,6 +15,7 @@ the plugin is skipped.
 """
 from __future__ import annotations
 
+import os
 from logging import Logger
 
 from scitrera_app_framework import Plugin, Variables, ext_parse_bool
@@ -60,11 +61,18 @@ class GLiNER2NERServicePlugin(Plugin):
         )
         default_labels = [lbl.strip() for lbl in labels_csv.split(",") if lbl.strip()]
 
-        service = GLiNER2NERService(
-            model_name=model_name,
-            default_labels=default_labels,
-            v=v,
-        )
+        worker_python = os.environ.get("MEMORYLAYER_EMBED_GLINER2_WORKER_PYTHON")
+        if worker_python:
+            from ..services.ner_worker import LocalGLiNERWorker
+            service = LocalGLiNERWorker(model_name=model_name, default_labels=default_labels,
+                python=worker_python, script=os.environ["MEMORYLAYER_EMBED_GLINER2_WORKER_SCRIPT"])
+            v.set("required_model_resources", [*v.get("required_model_resources", default=[]), service])
+        else:
+            service = GLiNER2NERService(
+                model_name=model_name,
+                default_labels=default_labels,
+                v=v,
+            )
 
         # Stash under the canonical Variables key so the /v1/ner router resolves
         # the service from the framework.
@@ -86,10 +94,14 @@ class GLiNER2NERServicePlugin(Plugin):
 
     async def async_ready(self, v: Variables, logger: Logger, value: object | None) -> None:
         """Preload the model at startup so the first request isn't blocked on warm-up."""
-        if value is None:
+        if value is None or os.environ.get("MEMORYLAYER_EMBED_GLINER2_WORKER_PYTHON"):
             return
         try:
             await value.preload()
             logger.info("GLiNER2 NER preloaded")
         except Exception as e:  # noqa: BLE001 - non-fatal; endpoint 503s until loaded
             logger.warning("GLiNER2 NER preload failed (non-fatal): %s", e)
+
+    async def async_stopping(self, v: Variables, logger: Logger, value: object | None) -> None:
+        if value is not None and hasattr(value, "shutdown"):
+            await value.shutdown()
