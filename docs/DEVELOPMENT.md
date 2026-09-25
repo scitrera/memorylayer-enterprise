@@ -101,6 +101,18 @@ paths. Wheel-only automatic discovery of these files is not yet supported.
 For Alembic CLI use, enterprise `migrations/env.py` reads `DATABASE_URL`;
 the running service reads `MEMORYLAYER_POSTGRESQL_URL`.
 
+PostgreSQL `vector(N)` columns take their width from
+`MEMORYLAYER_EMBEDDING_DIMENSIONS`. When it is unset, `N` is the configured
+embedding provider's default (384 for the default `embed_server`, 1536 for
+`openai`). Set it explicitly to your embedding model's output dimension.
+Earlier releases fell back to 1536 for every provider; databases created that
+way must set `MEMORYLAYER_EMBEDDING_DIMENSIONS=1536`. Startup and migrations
+refuse to run when `memories.embedding` does not match the configured width.
+To repair the width with Alembic (a downgrade, `stamp`, or a migration that
+alters the column), set `MEMORYLAYER_SKIP_EMBEDDING_DIMENSION_CHECK=1` for that
+run; startup and migrations then log a warning and skip the check. Unset it
+afterwards.
+
 Data connectors use `DC_POSTGRESQL_URL` and optional `DC_DATABASE_URL` for the
 Alembic CLI. Their migrations are included under `src/data_connectors/db/`.
 Run schema migrations with one owner before starting multiple replicas.

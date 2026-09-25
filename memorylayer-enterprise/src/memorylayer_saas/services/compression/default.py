@@ -13,7 +13,6 @@ Operations:
 - compute_on_demand_embedding: Re-embed content during cold retrieval
 - estimate_storage_reduction: Calculate compression ratio
 """
-import os
 from datetime import datetime, timezone
 from logging import Logger
 from typing import Optional
@@ -27,6 +26,7 @@ from scitrera_app_framework.api import Variables
 from memorylayer_saas.models.memory import Memory
 from memorylayer_server.services.embedding import EmbeddingService
 
+from ...storage.embedding_dimensions import resolve_embedding_dimensions
 from ...storage.leann import CSRGraph, LeannStorage
 from .base import (
     CompressionServicePluginBase,
@@ -36,8 +36,8 @@ from .base import (
     ColdRetrievalResult,
 )
 
-# Default embedding dimension - read from environment for configurability
-DEFAULT_EMBEDDING_DIM = int(os.environ.get('MEMORYLAYER_EMBEDDING_DIMENSIONS', '1536'))
+# Default embedding dimension - matches the storage vector columns
+DEFAULT_EMBEDDING_DIM = resolve_embedding_dimensions()
 
 # Default number of neighbors to keep per node in the pruned graph
 DEFAULT_K_NEIGHBORS = 32

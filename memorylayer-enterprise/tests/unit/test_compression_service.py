@@ -274,6 +274,7 @@ class TestEstimateStorageReduction:
         stats = compression_service.estimate_storage_reduction(
             node_count=1000,
             edge_count=32000,
+            embedding_dim=1536,
         )
 
         # Original: 1000 * 1536 * 4 = 6,144,000 bytes

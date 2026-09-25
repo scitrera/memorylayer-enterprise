@@ -7,8 +7,12 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-# Configurable vector dimensions - read at import time for ORM model definition
-_EMBEDDING_DIM = int(os.environ.get('MEMORYLAYER_EMBEDDING_DIMENSIONS', '1536'))
+from .embedding_dimensions import resolve_embedding_dimensions
+
+# Configurable vector dimensions - read at import time for ORM model definition.
+# The single-vector width follows MEMORYLAYER_EMBEDDING_DIMENSIONS, else the
+# configured embedding provider's default (see embedding_dimensions.py).
+_EMBEDDING_DIM = resolve_embedding_dimensions()
 _MULTIVECTOR_DIM = int(os.environ.get('MEMORYLAYER_MULTIVECTOR_DIMENSIONS', '128'))
 
 from pgvector.sqlalchemy import Vector, HALFVEC

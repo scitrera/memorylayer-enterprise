@@ -126,5 +126,6 @@ async def test_bootstrap_ignores_extension_tables_on_search_path(monkeypatch, ap
     backend = storage.PostgreSQLBackend(connection_string="postgresql+asyncpg://fixture")
     backend._apply_alembic_migrations = AsyncMock()
     backend._run_migrations = AsyncMock()
+    backend._verify_embedding_dimensions = AsyncMock()
     await backend.connect()
     backend._apply_alembic_migrations.assert_awaited_once_with(db_was_empty=expected_empty)

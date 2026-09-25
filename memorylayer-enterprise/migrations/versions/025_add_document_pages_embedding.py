@@ -11,7 +11,7 @@ Replaces the brittle single-vector page embedding stash in
 ``document_pages.metadata['_embedding']`` with a dedicated ``embedding``
 ``vector(N)`` column (idempotent-ingestion design,
 docs/DESIGN_idempotent_ingestion.md, item P2.4). ``N`` matches the deployed
-embed dimension (``MEMORYLAYER_EMBEDDING_DIMENSIONS``, default 1536) so the SAME
+embed dimension (``MEMORYLAYER_EMBEDDING_DIMENSIONS``, else the provider default) so the SAME
 embedding model that produces ``memories.embedding`` / ``fragments.embedding``
 also produces page vectors — the column type MIRRORS ``MemoryModel.embedding``
 exactly.
@@ -41,20 +41,21 @@ universally applied.)
 OSS SQLite does NOT get this column; this is an enterprise-only, pgvector-only
 feature. Single alembic head: 025 -> 024.
 """
-import os
 from typing import Sequence, Union
 
 from alembic import op
+
+from memorylayer_saas.storage.embedding_dimensions import resolve_embedding_dimensions
 
 revision: str = "025"
 down_revision: Union[str, None] = "024"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
-# Resolved at migration time from the same env var the ORM models read
+# Resolved at migration time exactly as the ORM models resolve it
 # (storage/models.py ``_EMBEDDING_DIM``) so the column dim never drifts from the
 # deployed embed model / the existing memory & fragment embedding columns.
-_EMBEDDING_DIM = int(os.environ.get("MEMORYLAYER_EMBEDDING_DIMENSIONS", "1536"))
+_EMBEDDING_DIM = resolve_embedding_dimensions()
 
 
 def upgrade() -> None:

@@ -13,7 +13,7 @@ entity-registry follow-on) resolves surface forms like ``Caroline`` and
 embedding. This migration adds the column + index that tier needs:
 
 - ``entities.name_embedding`` — ``vector(N)``, NULLABLE. ``N`` matches the
-  deployed embed dimension (``MEMORYLAYER_EMBEDDING_DIMENSIONS``, default 1536)
+  deployed embed dimension (``MEMORYLAYER_EMBEDDING_DIMENSIONS``, else the provider default)
   so the SAME embedding model that produces memory/fragment vectors also
   produces entity-name vectors. Nullable because (a) the OSS/SQLite backend
   never populates it (OSS resolution stays exact+alias only), and (b) the
@@ -27,20 +27,21 @@ embedding. This migration adds the column + index that tier needs:
 OSS SQLite does NOT get this column; this is an enterprise-only, pgvector-only
 feature. Single alembic head: 023 -> 022.
 """
-import os
 from typing import Sequence, Union
 
 from alembic import op
+
+from memorylayer_saas.storage.embedding_dimensions import resolve_embedding_dimensions
 
 revision: str = "023"
 down_revision: Union[str, None] = "022"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
-# Resolved at migration time from the same env var the ORM models read
+# Resolved at migration time exactly as the ORM models resolve it
 # (storage/models.py ``_EMBEDDING_DIM``) so the column dim never drifts from
 # the deployed embed model / the existing memory & fragment embedding columns.
-_EMBEDDING_DIM = int(os.environ.get("MEMORYLAYER_EMBEDDING_DIMENSIONS", "1536"))
+_EMBEDDING_DIM = resolve_embedding_dimensions()
 
 
 def upgrade() -> None:
