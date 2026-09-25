@@ -1,7 +1,8 @@
 # Container builds and releases
 
-The target [scitrera/memorylayer-enterprise](https://github.com/scitrera/memorylayer-enterprise)
-builds these four images in GHCR:
+The public [scitrera/memorylayer-enterprise](https://github.com/scitrera/memorylayer-enterprise)
+repository builds and publishes these four public images to GHCR. The first
+numbered release, `v0.0.1`, was published on 2026-09-09.
 
 | Image under `ghcr.io/scitrera/` | Recipe | Contents |
 | --- | --- | --- |
@@ -63,17 +64,17 @@ registry login or push. It also tests the nightly planner and workflow rules.
 The dashboard workflow uses `npm ci` with the committed lockfile, builds the
 production bundle, and checks TypeScript. It does not publish an npm package.
 
-## Private staging
+## Checks without publication
 
-While the repository is private, PostgreSQL refresh jobs are skipped and
-numbered/manual container publication fails its prerequisite check before any
-image is pushed. Branch and PR tests still run. Use the **Native container
-checks** workflow's manual dispatch to build and smoke-test all four images
-on both architectures without registry publication.
+Branch and PR tests never publish. Use the **Native container checks**
+workflow's manual dispatch to build and smoke-test all four images on both
+architectures without registry publication.
 
-Making the repository public enables the normal publication triggers described
-below, including the next nightly PostgreSQL check. Visibility is changed
-separately by a repository administrator after staging review.
+The workflows also guard against publishing from a private repository: while
+a repository is private, PostgreSQL refresh jobs are skipped and numbered or
+manual container publication fails its prerequisite check before any image is
+pushed. This applied during pre-release staging; the repository is now public,
+so the publication triggers described below are active.
 
 ## Numbered releases
 
