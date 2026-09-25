@@ -137,6 +137,11 @@ from ..models.document import (
 )
 from ..models.dataset import Dataset, DatasetJob, DatasetColumn, DatasetFormat, DatasetProfilingOptions, DatasetStatus
 from .database import Base
+from .embedding_dimensions import (
+    describe_mismatches,
+    embedding_dimension_check_skipped,
+    find_embedding_dimension_mismatches,
+)
 from .versioned_resources import PostgreSQLVersionedResourceStore
 
 # PostgreSQL plugin configuration
@@ -344,6 +349,12 @@ class PostgreSQLBackend(ColdTierStorageBackend):
             async with self._engine.begin() as conn:
                 await conn.run_sync(Base.metadata.create_all)
 
+        # Check BEFORE migrating too: a pending migration would otherwise add
+        # new vector columns at the configured width to a database whose
+        # existing columns were created with a different one.
+        if not db_was_empty:
+            await self._verify_embedding_dimensions(log_secondary=False)
+
         if self._auto_migrate_enabled():
             for step in self._schema_bootstrap_order(db_was_empty):
                 if step == "create_all":
@@ -358,6 +369,7 @@ class PostgreSQLBackend(ColdTierStorageBackend):
             # handling with "column ... does not exist". Fail loudly at startup
             # instead.
             await self._verify_schema_at_head()
+        await self._verify_embedding_dimensions(log_secondary=True)
         # Auxiliary SQL objects (e.g. max_sim) are idempotent and cheap, and the
         # runtime needs them regardless of who owns the versioned schema, so they
         # run on every startup in both modes.
@@ -367,6 +379,27 @@ class PostgreSQLBackend(ColdTierStorageBackend):
         self._leann_storage = LeannStorage(session_factory=self._session_factory)
 
         self.logger.info("Connected to PostgreSQL database with LEANN cold tier support")
+
+    async def _verify_embedding_dimensions(self, *, log_secondary: bool) -> None:
+        """Refuse to start when ``memories.embedding`` disagrees with the configured dimension.
+
+        Every memory write would fail against such a schema, so failing at
+        startup with remediation is strictly better. Mismatches on auxiliary
+        vector columns (fragments, collections, entities, ...) break only those
+        features, so they are logged as errors rather than blocking startup.
+        ``MEMORYLAYER_SKIP_EMBEDDING_DIMENSION_CHECK=1`` disables the check (with a
+        warning) so a schema repair can run.
+        """
+        if embedding_dimension_check_skipped(self.logger):
+            return
+        async with self._engine.connect() as conn:
+            mismatches = await conn.run_sync(find_embedding_dimension_mismatches, Base.metadata)
+        if not mismatches:
+            return
+        if any(m.is_primary for m in mismatches):
+            raise RuntimeError(describe_mismatches(mismatches))
+        if log_secondary:
+            self.logger.error("%s", describe_mismatches(mismatches))
 
     @staticmethod
     def _resolve_alembic_paths() -> tuple[str, str]:

@@ -21,9 +21,9 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Create collection_items table with pgvector embedding column."""
-    # Get embedding dimensions from environment (default 1536)
-    import os
-    embedding_dim = int(os.environ.get('MEMORYLAYER_EMBEDDING_DIMENSIONS', '1536'))
+    # Same resolution as the ORM (storage/models.py ``_EMBEDDING_DIM``)
+    from memorylayer_saas.storage.embedding_dimensions import resolve_embedding_dimensions
+    embedding_dim = resolve_embedding_dimensions()
 
     op.create_table(
         "collection_items",

@@ -14,6 +14,8 @@ import sqlalchemy as sa
 from alembic import op
 from pgvector.sqlalchemy import Vector
 
+from memorylayer_saas.storage.embedding_dimensions import resolve_embedding_dimensions
+
 # revision identifiers, used by Alembic.
 revision: str = "001"
 down_revision: Union[str, None] = None
@@ -81,7 +83,7 @@ def upgrade() -> None:
         sa.Column("importance", sa.Float(), server_default="0.5", nullable=False),
         sa.Column("tags", sa.ARRAY(sa.Text()), server_default="{}", nullable=False),
         sa.Column("metadata", sa.dialects.postgresql.JSONB(), server_default="{}", nullable=False),
-        sa.Column("embedding", Vector(1536), nullable=True),
+        sa.Column("embedding", Vector(resolve_embedding_dimensions()), nullable=True),
         sa.Column("access_count", sa.Integer(), server_default="0", nullable=False),
         sa.Column("last_accessed_at", sa.dialects.postgresql.TIMESTAMP(timezone=True), nullable=True),
         sa.Column("decay_factor", sa.Float(), server_default="1.0", nullable=False),
@@ -179,7 +181,7 @@ def upgrade() -> None:
         sa.Column("workspace_id", sa.Text(), nullable=False),
         sa.Column("sequence", sa.Integer(), nullable=False),
         sa.Column("content", sa.Text(), nullable=False),
-        sa.Column("embedding", Vector(1536), nullable=True),
+        sa.Column("embedding", Vector(resolve_embedding_dimensions()), nullable=True),
         sa.Column(
             "created_at",
             sa.dialects.postgresql.TIMESTAMP(timezone=True),

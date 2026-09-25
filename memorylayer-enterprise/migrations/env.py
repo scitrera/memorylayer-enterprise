@@ -3,6 +3,7 @@
 
 """Alembic environment configuration with async support for PostgreSQL."""
 import asyncio
+import logging
 import os
 from logging.config import fileConfig
 
@@ -13,6 +14,7 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 # Import all models to ensure they're registered with Base.metadata
 from memorylayer_saas.storage.database import Base
+from memorylayer_saas.storage.embedding_dimensions import verify_migration_embedding_dimensions
 from memorylayer_saas.storage.models import (  # noqa: F401
     ContextModel,
     DocumentModel,
@@ -84,6 +86,10 @@ def run_migrations_offline() -> None:
 
 def do_run_migrations(connection: Connection) -> None:
     """Execute migrations with the provided connection."""
+    # Refuse to migrate a database whose memories.embedding width differs from the
+    # configured dimension, unless MEMORYLAYER_SKIP_EMBEDDING_DIMENSION_CHECK=1 is
+    # set for a repair run (downgrade, stamp, or a column-altering migration).
+    verify_migration_embedding_dimensions(connection, target_metadata, logging.getLogger("alembic.env"))
     context.configure(connection=connection, target_metadata=target_metadata)
 
     with context.begin_transaction():
