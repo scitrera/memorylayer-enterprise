@@ -30,7 +30,7 @@ dashboard SDK linking, source provenance, and remaining integration checks.
 
 Python components require Python 3.12 or later; the dashboard uses Node.js 22
 or later. Package names and Python import paths retain their existing names.
-The initial extension versions remain 0.0.1 until the release version is chosen.
+The first shared image release is `v0.0.1`; see [container builds and releases](docs/CONTAINERS.md).
 
 [Container builds and releases](docs/CONTAINERS.md) use Scitrera repo-tools
 for the enterprise service, data connectors, and both PostgreSQL variants.
