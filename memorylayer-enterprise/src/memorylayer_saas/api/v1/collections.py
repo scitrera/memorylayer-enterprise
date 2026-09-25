@@ -10,13 +10,19 @@ Endpoints:
 - PUT    /v1/collections/{id}     - Update collection item
 - DELETE /v1/collections/{id}     - Delete collection item
 - POST   /v1/collections/search   - Search by vector similarity
+
+Item content is embedded with the server's configured embedding service on
+create, and again whenever an update changes it, so items are searchable.
+Search accepts either query text (embedded the same way) or a precomputed
+query embedding from the same model. If the embedding service fails, these
+requests return 503 rather than storing an item that search can never find.
 """
 from datetime import datetime
 from logging import Logger
 from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 from scitrera_app_framework import Plugin, Variables
 
 from memorylayer_server.api import EXT_MULTI_API_ROUTERS
@@ -25,6 +31,7 @@ from memorylayer_server.lifecycle.fastapi import get_logger, get_variables_dep
 from memorylayer_server.services.authentication import AuthenticationService
 from memorylayer_server.services.authorization import AuthorizationService
 from memorylayer_server.services.audit import AuditService, AuditEvent
+from memorylayer_server.services.embedding import EmbeddingService, get_embedding_service
 
 from ...services.collection import CollectionService
 
@@ -43,6 +50,28 @@ def _get_collection_service(v: Variables = Depends(get_variables_dep)) -> Collec
     return _collection_service
 
 
+def _get_embedding_service(v: Variables = Depends(get_variables_dep)) -> EmbeddingService:
+    return get_embedding_service(v)
+
+
+EMBEDDING_UNAVAILABLE_DETAIL = "Embedding service unavailable; collection items require embeddings"
+
+
+async def _embed(embedding_service: EmbeddingService, text: str, logger: Logger) -> list[float]:
+    """Embed ``text``, mapping any embedding failure to 503.
+
+    Provider errors (including ``ValueError``) describe the embedding backend, not
+    the caller's request, so they must not surface as a 400 or leak raw messages.
+    """
+    try:
+        return await embedding_service.embed(text)
+    except Exception as e:
+        logger.error("Collection embedding failed: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=EMBEDDING_UNAVAILABLE_DETAIL,
+        ) from e
+
+
 # ------------------------------------------------------------------ #
 # Request/Response models
 # ------------------------------------------------------------------ #
@@ -50,7 +79,7 @@ def _get_collection_service(v: Variables = Depends(get_variables_dep)) -> Collec
 class CollectionItemCreateRequest(BaseModel):
     collection_name: str = Field(..., description="Collection name")
     name: str = Field(..., description="Item name")
-    content: str = Field(..., description="Item content")
+    content: str = Field(..., min_length=1, description="Item content (embedded for search)")
     item_type: Optional[str] = Field(None, description="Item type")
     tags: list[str] = Field(default_factory=list, description="Tags")
     metadata: dict[str, Any] = Field(default_factory=dict, description="Metadata")
@@ -59,7 +88,7 @@ class CollectionItemCreateRequest(BaseModel):
 
 class CollectionItemUpdateRequest(BaseModel):
     name: Optional[str] = Field(None)
-    content: Optional[str] = Field(None)
+    content: Optional[str] = Field(None, min_length=1)
     item_type: Optional[str] = Field(None)
     tags: Optional[list[str]] = Field(None)
     metadata: Optional[dict[str, Any]] = Field(None)
@@ -87,9 +116,20 @@ class CollectionItemListResponse(BaseModel):
 
 
 class CollectionSearchRequest(BaseModel):
-    query_embedding: list[float] = Field(..., description="Query embedding vector")
+    query: Optional[str] = Field(None, description="Query text, embedded by the server")
+    query_embedding: Optional[list[float]] = Field(
+        None, description="Precomputed query embedding from the server's embedding model",
+    )
     collection_name: Optional[str] = Field(None, description="Filter by collection")
     limit: int = Field(10, ge=1, le=100, description="Max results")
+
+    @model_validator(mode="after")
+    def _exactly_one_query(self) -> "CollectionSearchRequest":
+        if (self.query is None) == (self.query_embedding is None):
+            raise ValueError("Provide exactly one of 'query' or 'query_embedding'")
+        if self.query is not None and not self.query.strip():
+            raise ValueError("'query' cannot be empty")
+        return self
 
 
 class CollectionSearchResult(BaseModel):
@@ -122,10 +162,11 @@ async def create_collection_item(
     auth_service: AuthenticationService = Depends(get_auth_service),
     authz_service: AuthorizationService = Depends(get_authz_service),
     service: CollectionService = Depends(_get_collection_service),
+    embedding_service: EmbeddingService = Depends(_get_embedding_service),
     audit_service: AuditService = Depends(get_audit_service),
     logger: Logger = Depends(get_logger),
 ) -> CollectionItemResponse:
-    """Create a new collection item."""
+    """Create a new collection item and embed its content for search."""
     try:
         ctx = await auth_service.build_context(http_request)
         await authz_service.require_authorization(ctx, "collections", "write", workspace_id=ctx.workspace_id)
@@ -144,6 +185,7 @@ async def create_collection_item(
             tags=request.tags,
             metadata=request.metadata,
             enabled=request.enabled,
+            embedding=await _embed(embedding_service, request.content, logger),
         )
         created = await service.create_item(item)
 
@@ -248,15 +290,21 @@ async def update_collection_item(
     auth_service: AuthenticationService = Depends(get_auth_service),
     authz_service: AuthorizationService = Depends(get_authz_service),
     service: CollectionService = Depends(_get_collection_service),
+    embedding_service: EmbeddingService = Depends(_get_embedding_service),
     audit_service: AuditService = Depends(get_audit_service),
     logger: Logger = Depends(get_logger),
 ) -> CollectionItemResponse:
-    """Update a collection item."""
+    """Update a collection item, re-embedding it when its content changes."""
     try:
         ctx = await auth_service.build_context(http_request)
         await authz_service.require_authorization(ctx, "collections", "write", workspace_id=ctx.workspace_id)
 
         updates = request.model_dump(exclude_none=True)
+        if "content" in updates:
+            # Check existence first so a missing item is a 404 without an embed call.
+            if not await service.get_item(item_id, ctx.workspace_id):
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Collection item not found: {item_id}")
+            updates["embedding"] = await _embed(embedding_service, updates["content"], logger)
         item = await service.update_item(item_id, ctx.workspace_id, **updates)
         if not item:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Collection item not found: {item_id}")
@@ -334,16 +382,20 @@ async def search_collections(
     auth_service: AuthenticationService = Depends(get_auth_service),
     authz_service: AuthorizationService = Depends(get_authz_service),
     service: CollectionService = Depends(_get_collection_service),
+    embedding_service: EmbeddingService = Depends(_get_embedding_service),
     logger: Logger = Depends(get_logger),
 ) -> CollectionSearchResponse:
-    """Search collection items by vector similarity."""
+    """Search collection items by vector similarity to query text or an embedding."""
     try:
         ctx = await auth_service.build_context(http_request)
         await authz_service.require_authorization(ctx, "collections", "read", workspace_id=ctx.workspace_id)
 
+        query_embedding = request.query_embedding
+        if query_embedding is None:
+            query_embedding = await _embed(embedding_service, request.query, logger)
         results = await service.search_similar(
             workspace_id=ctx.workspace_id,
-            query_embedding=request.query_embedding,
+            query_embedding=query_embedding,
             collection_name=request.collection_name,
             limit=request.limit,
         )
